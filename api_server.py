@@ -368,17 +368,6 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/debug/env")
-def debug_env():
-    """Temporary debug endpoint — remove after verifying deployment."""
-    return {
-        "has_openai_key": bool(os.environ.get("OPENAI_API_KEY")),
-        "key_prefix": (os.environ.get("OPENAI_API_KEY") or "")[:8] + "...",
-        "has_database_url": bool(os.environ.get("DATABASE_URL")),
-        "has_pg_host": bool(os.environ.get("PG_HOST")),
-        "frontend_url": os.environ.get("FRONTEND_URL"),
-    }
-
 
 # --- Cache Management Endpoints ---
 
