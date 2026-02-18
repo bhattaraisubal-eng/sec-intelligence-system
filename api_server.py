@@ -4,9 +4,26 @@ Run: .venv/bin/uvicorn api_server:app --host 0.0.0.0 --port 8000
 """
 
 import json
+import os
 import re
 import time
 import traceback
+from urllib.parse import urlparse
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Railway (and similar PaaS) provide DATABASE_URL as a single connection string.
+# Parse it into individual PG_* env vars that the rest of the codebase expects.
+_database_url = os.environ.get("DATABASE_URL")
+if _database_url and not os.environ.get("PG_HOST"):
+    _parsed = urlparse(_database_url)
+    os.environ.setdefault("PG_HOST", _parsed.hostname or "localhost")
+    os.environ.setdefault("PG_PORT", str(_parsed.port or 5432))
+    os.environ.setdefault("PG_USER", _parsed.username or "")
+    os.environ.setdefault("PG_PASSWORD", _parsed.password or "")
+    os.environ.setdefault("PG_DATABASE", _parsed.path.lstrip("/") or "sec_filings")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,10 +35,15 @@ from cache import cache_stats, cache_clear, get_cached_query_result
 
 app = FastAPI(title="SEC Filing RAG API")
 
-# Allow the React frontend (dev server on :3000) to call this API
+# CORS: allow localhost for dev + production frontend URL from env
+_cors_origins = ["http://localhost:3000"]
+_frontend_url = os.environ.get("FRONTEND_URL")
+if _frontend_url:
+    _cors_origins.append(_frontend_url.rstrip("/"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -318,9 +318,9 @@ function renderInline(text, sources) {
         // Legacy Source format: "10-K XBRL, Ticker: AAPL, Year: 2023, Concept: us-gaap:Foo"
         // Also handles LLM-generated: "XBRL, Ticker: AAPL, Year: 2023, Section: us-gaap:Foo"
         const filing = (rawLabel.match(/\b(10-[KQ]|8-K)\b/i) || [""])[0].toUpperCase();
-        const ticker = (rawLabel.match(/Ticker:\s*(\w+)/i) || [, ""])[1];
-        const year = (rawLabel.match(/Year:\s*(\d{4})/i) || [, ""])[1];
-        const concept = (rawLabel.match(/(?:Concept|Section):\s*([\w\-.:]+)/i) || [, ""])[1];
+        const ticker = (rawLabel.match(/Ticker:\s*(\w+)/i) || [undefined, ""])[1];
+        const year = (rawLabel.match(/Year:\s*(\d{4})/i) || [undefined, ""])[1];
+        const concept = (rawLabel.match(/(?:Concept|Section):\s*([\w\-.:]+)/i) || [undefined, ""])[1];
         const friendly = concept ? xbrlLabel(concept) : "";
         if (friendly && ticker && year) return `${friendly} · ${ticker} FY${year}`;
         if (filing && ticker && year) return `${filing} · ${ticker} FY${year}`;
@@ -418,7 +418,6 @@ function RetrievalPlan({ steps, activeStep, completed }) {
         {steps.map((step, i) => {
           const isActive = !completed && i === activeStep;
           const isDone = completed || i < activeStep;
-          const isPending = !completed && i > activeStep;
           const icon = STEP_ICONS[step.name];
 
           return (
@@ -640,9 +639,6 @@ function renderMath(tex) {
   // Remove remaining backslash commands (but not braces yet)
   s = s.replace(/\\[a-zA-Z]+/g, "");
 
-  // Tokenize into React elements
-  const elements = [];
-  let key = 0;
   let remaining = s;
 
   while (remaining.length > 0) {
@@ -881,9 +877,6 @@ function ConfidenceBreakdown({ confidence }) {
   const { overall_score, tier_label, tier_color, tier_description, signals } = confidence;
   const scoreColor =
     tier_color === "green" ? "text-term-green" : tier_color === "yellow" ? "text-amber" : "text-bb_red";
-  const scoreBg =
-    tier_color === "green" ? "bg-term-green" : tier_color === "yellow" ? "bg-amber" : "bg-bb_red";
-
   return (
     <div className="bb-panel-inset rounded bg-bb-panel p-4">
       <div className="flex items-center justify-between mb-3">
@@ -1216,7 +1209,6 @@ function ResultMetadataStrip() {
 function AnimatedNumber({ value, duration = 1500 }) {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
-    let start = 0;
     const end = value;
     const startTime = performance.now();
     const tick = (now) => {
@@ -1805,7 +1797,7 @@ function App() {
   const [classification, setClassification] = useState(null);
   const [planSteps, setPlanSteps] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
-  const [planComplete, setPlanComplete] = useState(false);
+  const [, setPlanComplete] = useState(false);
   const stepTimerRef = useRef(null);
   const [sessionCost, setSessionCost] = useState(0);
 
@@ -1875,14 +1867,15 @@ function App() {
 
           if (eventType === "retrieval_plan") {
             stepsReceived = eventData.steps || [];
-            setPlanSteps(stepsReceived);
+            const steps = stepsReceived;
+            setPlanSteps(steps);
             setActiveStep(0);
 
             let step = 0;
-            const intervalMs = Math.max(800, Math.min(2000, 8000 / Math.max(stepsReceived.length, 1)));
+            const intervalMs = Math.max(800, Math.min(2000, 8000 / Math.max(steps.length, 1)));
             stepTimerRef.current = setInterval(() => {
               step++;
-              if (step < stepsReceived.length) {
+              if (step < steps.length) {
                 setActiveStep(step);
               } else {
                 clearInterval(stepTimerRef.current);
