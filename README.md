@@ -36,6 +36,11 @@ FastAPI Backend (Railway)
 Streamed Response (SSE)
 ```
 
+For detailed documentation, see:
+- [System Architecture](docs/architecture.md) - Component design, data flow, caching, guardrails
+- [Database Design](docs/database.md) - Table schemas, indexes, vector search, data volumes
+- [Retrieval Routes](docs/retrieval-routes.md) - How each query route works with examples
+
 ## Features
 
 - **Intelligent Query Routing** - Classifies queries and routes to the optimal retrieval strategy
