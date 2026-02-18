@@ -1,0 +1,280 @@
+# =============================================================================
+# SEC RAG System — Guardrail Configuration
+#
+# Controls retrieval quality gates, contradiction detection, confidence
+# scoring, and answer generation policies. Edit thresholds here instead
+# of touching Python code.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# 1. Retrieval Quality Gates
+#    Applied BEFORE context reaches the LLM. Chunks / facts that fail these
+#    gates are dropped silently (or flagged, depending on mode).
+# ---------------------------------------------------------------------------
+retrieval:
+  vector:
+    # Minimum cosine similarity (0-1) for a chunk to be considered.
+    min_similarity: 0.35
+    # Minimum cross-encoder rerank score (-∞ to +∞). MiniLM-L-6-v2 returns
+    # scores roughly -10 to +10. A threshold of -1.0 filters marginally
+    # relevant chunks to reduce noise and hallucination risk.
+    min_rerank_score: -1.0
+    # Maximum chunks fed to the LLM per query (after filtering).
+    max_chunks: 15
+    # Warn when fewer than this many chunks pass the quality gate.
+    min_chunks_warn: 2
+
+  relational:
+    # Maximum XBRL facts per concept per year in context.
+    max_facts_per_concept: 5
+    # Require at least one fact to proceed with relational route.
+    require_min_facts: true
+
+  # When true, queries with zero usable results after filtering produce a
+  # "not enough data" response instead of hallucinating.
+  block_empty_context: true
+
+# ---------------------------------------------------------------------------
+# 2. Financial Contradiction Detection
+#    Detects mismatches between narrative (vector) and numbers (relational).
+#    Only runs on hybrid-route queries.
+# ---------------------------------------------------------------------------
+contradiction_detection:
+  enabled: true
+
+  # Tolerance for narrative-vs-number directional mismatch.
+  # If narrative says "increased" but the XBRL delta is negative (or vice
+  # versa), flag it.  Small changes within this % band are ignored.
+  direction_tolerance_pct: 2.0
+
+  # Tolerance for magnitude claims. If narrative says "grew 15%" but XBRL
+  # shows 8%, flag when the gap exceeds this threshold (in percentage points).
+  magnitude_tolerance_ppt: 5.0
+
+  # Keywords that signal directional claims in narrative text.
+  increase_keywords:
+    - increased
+    - grew
+    - risen
+    - higher
+    - expanded
+    - gained
+    - surged
+    - improved
+    - accelerated
+    - up
+
+  decrease_keywords:
+    - decreased
+    - declined
+    - fell
+    - lower
+    - contracted
+    - lost
+    - dropped
+    - reduced
+    - slowed
+    - down
+
+  # Concepts checked for narrative-vs-number consistency.
+  # Maps human terms to patterns that match XBRL concept names.
+  watched_concepts:
+    revenue:
+      - "Revenue"
+      - "SalesRevenueNet"
+    net_income:
+      - "NetIncomeLoss"
+    operating_income:
+      - "OperatingIncomeLoss"
+    eps:
+      - "EarningsPerShare"
+    gross_profit:
+      - "GrossProfit"
+    total_assets:
+      - "Assets"
+    earnings:
+      - "Earnings"
+      - "EarningsPerShare"
+
+# ---------------------------------------------------------------------------
+# 3. Confidence Scoring
+#    Multi-signal score (0-100) surfaced to the investor alongside the answer.
+# ---------------------------------------------------------------------------
+confidence:
+  # Weights for each signal (must sum to 1.0).
+  # These are the BASELINE weights.  Route-specific overrides below adjust
+  # the mix but stay within a narrow band so every route is scored fairly.
+  weights:
+    retrieval_quality: 0.25    # How strong are the source matches?
+    source_coverage: 0.25      # Do sources span all requested years/concepts?
+    cross_source_agreement: 0.15  # Do narrative and numbers agree?
+    citation_density: 0.10     # How well-cited is the generated answer?
+    data_recency: 0.25         # Is the data from the requested period?
+
+  # --- Route-specific overrides ---
+  # Weight differences across routes are kept small so that all query types
+  # are scored on a comparable scale.  No route should get an automatic 90+.
+
+  # Relational routes (metric_lookup, full_statement):
+  relational_overrides:
+    retrieval_quality_score: 90    # XBRL = SEC-filed ground truth
+    statement_fallback_score: 72   # Statement text is reliable but less precise
+    weights:
+      retrieval_quality: 0.20      # High but not dominant — data quality alone isn't enough
+      source_coverage: 0.30        # Did we find the exact fact? Most critical.
+      cross_source_agreement: 0.10 # Still valuable even for structured lookups
+      citation_density: 0.10       # Answer should reference sources
+      data_recency: 0.30           # Period match is paramount for point lookups
+
+  # Timeseries routes:
+  # Multi-year XBRL data. Coverage is measured by data-point completeness
+  # across the requested year range.
+  timeseries_overrides:
+    retrieval_quality_score: 90
+    weights:
+      retrieval_quality: 0.15      # XBRL data is inherently authoritative
+      source_coverage: 0.35        # How many of the requested years have data?
+      cross_source_agreement: 0.10 # Cross-check still matters
+      citation_density: 0.10       # Answer should reference data points
+      data_recency: 0.30           # Most recent data point should match query
+
+  # Narrative routes (semantic search):
+  # Multiple corroborating chunks from different sections/filings increase
+  # confidence. Source diversity and retrieval quality matter most.
+  narrative_overrides:
+    # Minimum chunks to achieve full source_diversity score
+    min_chunks_full_confidence: 5
+    # Bonus per unique filing section found (e.g. MD&A + Risk Factors)
+    section_diversity_bonus: 8
+    weights:
+      retrieval_quality: 0.25      # Reranking scores matter — are chunks relevant?
+      source_coverage: 0.20        # Year/concept overlap
+      cross_source_agreement: 0.20 # Multiple sources saying the same thing = key
+      citation_density: 0.15       # Well-cited narrative answers are better
+      data_recency: 0.20           # Period match
+
+  # --- Per-signal parameters ---
+
+  retrieval_quality:
+    # Score = avg rerank score mapped into 0-100 via these breakpoints.
+    # Below `low` → 0; above `high` → 100; linear between.
+    low: -1.0
+    high: 4.0
+
+  source_coverage:
+    # Fraction of requested (ticker x year x concept) tuples that returned
+    # data.  1.0 = all found → 100; 0.0 = none found → 0.
+    # No extra parameters; computed directly.
+
+  cross_source_agreement:
+    # Penalty per detected contradiction.
+    penalty_per_contradiction: 25
+    # Bonus when narrative and numbers agree on direction.
+    bonus_per_agreement: 10
+    # Max score for this signal.
+    max_score: 100
+
+  citation_density:
+    # Target: at least one citation per N sentences in the answer.
+    target_citations_per_sentence: 0.5
+    # Score = min(actual_density / target, 1.0) * 100
+
+  data_recency:
+    # Full score when the data year matches the query year.
+    # Penalty per year of staleness.
+    penalty_per_year_stale: 20
+
+  # Investor-facing confidence tiers.
+  tiers:
+    - label: "High Confidence"
+      min_score: 75
+      color: "green"
+      description: "Strong source agreement, comprehensive coverage."
+    - label: "Moderate Confidence"
+      min_score: 50
+      color: "yellow"
+      description: "Partial coverage or minor inconsistencies."
+    - label: "Low Confidence"
+      min_score: 25
+      color: "red"
+      description: "Significant gaps or contradictions detected."
+    - label: "Insufficient Data"
+      min_score: 0
+      color: "dim"
+      description: "Not enough data to produce a reliable answer."
+
+# ---------------------------------------------------------------------------
+# 4. Answer Generation Policies
+# ---------------------------------------------------------------------------
+answer:
+  # Maximum tokens in the generated answer (soft guidance in prompt).
+  max_tokens: 1500
+  # Temperature override (null = use default 0.1).
+  temperature: null
+  # Require the answer to contain at least this many inline citations.
+  min_citations: 1
+  # If true, append contradiction warnings to the answer when detected.
+  surface_contradictions: true
+  # If true, append the confidence tier banner to the answer.
+  surface_confidence: true
+
+# ---------------------------------------------------------------------------
+# 5. Query Validation
+# ---------------------------------------------------------------------------
+query:
+  # Reject queries shorter than this (character count).
+  min_length: 5
+  # Reject queries longer than this.
+  max_length: 1000
+  # Blocked patterns (regex). Queries matching any pattern are rejected.
+  blocked_patterns:
+    - "(?i)ignore previous instructions"
+    - "(?i)forget everything"
+    - "(?i)system prompt"
+  # If ticker can't be extracted, allow the query to proceed anyway.
+  allow_no_ticker: true
+
+# ---------------------------------------------------------------------------
+# 6. Scope Boundaries
+#    Defines what data the system actually covers. Queries outside these
+#    boundaries get a clear, actionable rejection message instead of
+#    empty results or hallucinations.
+# ---------------------------------------------------------------------------
+scope:
+  # Supported tickers (top 10 S&P 500 by market cap).
+  supported_tickers:
+    - AAPL
+    - MSFT
+    - NVDA
+    - AMZN
+    - GOOGL
+    - META
+    - BRK-B
+    - LLY
+    - AVGO
+    - JPM
+
+  # Supported fiscal year range (inclusive on both ends).
+  min_year: 2010
+  max_year: 2027
+
+  # Filing sections that have been embedded as vectors for narrative search.
+  # Queries targeting other sections can still use XBRL/relational data but
+  # will not have narrative context.
+  embedded_sections:
+    - "Risk Factors"
+    - "MD&A"
+
+  # Human-readable aliases that map to embedded sections (case-insensitive).
+  section_aliases:
+    "risk factors": "Risk Factors"
+    "risk": "Risk Factors"
+    "risks": "Risk Factors"
+    "item 1a": "Risk Factors"
+    "md&a": "MD&A"
+    "mda": "MD&A"
+    "management discussion": "MD&A"
+    "management discussion and analysis": "MD&A"
+    "item 7": "MD&A"
+    "item 2": "MD&A"
+    "results of operations": "MD&A"
