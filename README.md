@@ -1,6 +1,6 @@
 # SEC RAG System
 
-A retrieval-augmented generation (RAG) system for querying SEC filings (10-K, 10-Q, 8-K) using natural language. Covers the top 10 S&P 500 companies from 2010 to present.
+A retrieval-augmented generation (RAG) system for querying SEC filings (10-K, 10-Q) using natural language. Covers the top 10 S&P 500 companies from 2010 to present.
 
 **Live Demo:** [sec-rag-system.vercel.app](https://sec-rag-system.vercel.app)
 
@@ -71,7 +71,7 @@ For detailed documentation, see:
 
 **Tickers:** AAPL, MSFT, NVDA, AMZN, GOOGL, META, BRK-B, LLY, AVGO, JPM
 
-**Filings:** 10-K (annual), 10-Q (quarterly), 8-K (earnings) from 2010 to present
+**Filings:** 10-K (annual) and 10-Q (quarterly) from 2010 to present
 
 ## Project Structure
 
