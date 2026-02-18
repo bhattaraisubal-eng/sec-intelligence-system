@@ -1972,6 +1972,7 @@ function App() {
       {/* ==================== HEADER BAR ==================== */}
       <header className="flex-shrink-0 h-10 flex items-center justify-between px-4 bg-bb-panel border-b border-bb-border">
         <div className="flex items-center gap-3">
+          <span className="text-xs font-mono font-semibold text-term-green tracking-wide">SEC Filing Intelligence System</span>
           {classification && loading && (
             <span className="text-xxs font-mono text-amber animate-pulse">
               PROCESSING: {classification.route_name || classification.route}
@@ -2235,7 +2236,7 @@ function App() {
       </div>
 
       {/* ==================== FOOTER STATUS BAR ==================== */}
-      <footer className="flex-shrink-0 h-7 flex items-center justify-between px-4 bg-bb-panel border-t border-bb-border text-xxs font-mono">
+      <footer className="flex-shrink-0 h-8 flex items-center justify-between px-4 bg-bb-panel border-t border-bb-border text-xs font-mono">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5 text-term-green">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-term-green" />
@@ -2263,7 +2264,7 @@ function App() {
         <div className="flex items-center gap-3">
           {queriesRemaining != null && (
             <span className="text-bb-gray-400">
-              Queries:{" "}
+              Queries remaining:{" "}
               <span className={`tabular-nums font-semibold ${queriesRemaining <= 2 ? "text-red-400" : queriesRemaining <= 5 ? "text-amber" : "text-term-green"}`}>
                 {queriesRemaining}
               </span>
