@@ -43,7 +43,9 @@ This document captures the engineering decisions, technical challenges, and doma
    - [Confidence Scoring System](#65-confidence-scoring-system)
    - [Cost Tracking & Efficiency Grading](#66-cost-tracking--efficiency-grading)
 7. [Caching Architecture](#7-caching-architecture)
-8. [Lessons Learned](#8-lessons-learned)
+8. [Deployment](#8-deployment)
+9. [Lessons Learned](#9-lessons-learned)
+10. [Future Improvements](#10-future-improvements)
 
 ---
 
@@ -624,7 +626,84 @@ The three-layer caching strategy was designed around the observation that differ
 
 ---
 
-## 8. Lessons Learned
+## 8. Deployment
+
+### Architecture Decision: Railway + Vercel Split
+
+**Considered alternatives**:
+- **Single platform (Railway for everything)**: Simpler, but Railway charges for static site hosting that Vercel serves for free. Frontend builds also consume Railway build minutes unnecessarily.
+- **AWS (EC2 + RDS + S3/CloudFront)**: Full control, but significant operational overhead (security groups, IAM, certificates, auto-scaling). Overkill for a demo/portfolio project with low traffic.
+- **Fly.io + Neon**: Strong contender. Fly.io's edge deployment is attractive, but Neon's free tier (0.5 GB) was too small for the 3 GB database.
+- **Render + Neon/Supabase**: Render's free tier sleeps after 15 minutes (30-second cold starts). Neon and Supabase free tiers also couldn't accommodate the database size.
+
+**Why Railway + Vercel**:
+- **Vercel** (frontend): Zero-cost hosting for React with automatic GitHub deployments, global CDN, and preview deployments for PRs. The frontend is a static build — Vercel is purpose-built for this.
+- **Railway** (backend + database): A single platform for both FastAPI and PostgreSQL simplifies networking (services communicate over internal DNS, no public internet latency). The $5/month Hobby plan includes enough compute for a low-traffic application and ~3 GB of database storage.
+
+### Database: pgvector Docker Image
+
+Railway's built-in PostgreSQL service does not include the pgvector extension. Since the entire RAG pipeline depends on vector similarity search, this was a non-negotiable requirement.
+
+**Solution**: Deployed a custom Docker image (`pgvector/pgvector:pg17`) as a Railway service instead of using the managed PostgreSQL addon. This required:
+- **Custom volume mount**: PostgreSQL's default data directory (`/var/lib/postgresql/data`) conflicts with Railway's volume mount point (which creates a `lost+found` directory). The fix was mounting at `/data/postgres` and setting `PGDATA=/data/postgres`.
+- **Manual TCP proxy**: Unlike Railway's managed Postgres (which auto-configures networking), the Docker-based service required manually enabling a TCP proxy for external access during migration.
+
+### DATABASE_URL Compatibility
+
+Railway provides a single `DATABASE_URL` connection string, but the codebase uses individual `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` environment variables across 8+ modules. Rather than modifying every module, the API server entry point parses `DATABASE_URL` into individual variables at startup:
+
+```python
+_database_url = os.environ.get("DATABASE_URL")
+if _database_url and not os.environ.get("PG_HOST"):
+    _parsed = urlparse(_database_url)
+    os.environ.setdefault("PG_HOST", _parsed.hostname or "localhost")
+    os.environ.setdefault("PG_PORT", str(_parsed.port or 5432))
+    os.environ.setdefault("PG_USER", _parsed.username or "")
+    os.environ.setdefault("PG_PASSWORD", _parsed.password or "")
+    os.environ.setdefault("PG_DATABASE", _parsed.path.lstrip("/"))
+```
+
+This runs before any module imports, so all downstream connection pools pick up the correct values. Local development continues to work via `.env` with individual variables.
+
+### CORS Configuration
+
+The FastAPI backend initially hardcoded `allow_origins=["http://localhost:3000"]`. For production, CORS needed to allow the Vercel frontend domain while keeping localhost for development:
+
+```python
+_cors_origins = ["http://localhost:3000"]
+_frontend_url = os.environ.get("FRONTEND_URL", "")
+if _frontend_url:
+    url = _frontend_url.rstrip("/")
+    if not url.startswith("http"):
+        url = "https://" + url
+    _cors_origins.append(url)
+```
+
+A `allow_origin_regex` also permits all `*.vercel.app` subdomains, which covers Vercel's preview deployment URLs (each PR gets a unique subdomain).
+
+**Edge case encountered**: Railway's edge proxy has its own CORS handling that can conflict with FastAPI's `CORSMiddleware`. The initial deployment returned `Disallowed CORS origin` from Railway's edge layer, even though FastAPI was configured correctly. Disabling Railway's edge CORS (`RAILWAY_ENABLE_CORS=false`) resolved this by letting FastAPI handle CORS exclusively.
+
+### Data Migration
+
+Migrating the 3 GB local database to Railway required:
+
+1. **pg_dump version matching**: The local PostgreSQL was v17, but the system `pg_dump` was v14, causing a version mismatch error. Using the Homebrew v17 binary (`/opt/homebrew/opt/postgresql@17/bin/pg_dump`) resolved this.
+2. **Network timeout handling**: The initial `pg_restore` of the 1 GB compressed dump timed out over the internet. The schema was restored first (`--schema-only`), then data was restored separately, which succeeded.
+3. **IVFFlat index memory limits**: Railway's default `maintenance_work_mem` (64 MB) was insufficient for building IVFFlat indexes with 100 lists on the 42K-row embedding table. Reducing to 50 lists brought memory usage under the limit while maintaining acceptable recall.
+
+### Cost Control
+
+Railway's Hobby plan is $5/month with usage-based billing that could theoretically exceed this. A hard **usage cap** was set at $5/month in Railway's billing settings — when the cap is reached, services stop rather than incur additional charges. This ensures predictable costs for a demo application.
+
+**Actual cost breakdown**:
+- PostgreSQL storage (~3 GB): ~$0.75/month
+- PostgreSQL compute (idle + occasional queries): ~$1-2/month
+- Backend compute (FastAPI, mostly idle): ~$1-2/month
+- **Total**: ~$3-4/month, within the $5 credit
+
+---
+
+## 9. Lessons Learned
 
 1. **Domain complexity dominates technical complexity.** The hardest problems weren't about vector search or LLM prompting — they were about understanding SEC filing structures, fiscal year conventions, and XBRL taxonomy evolution. A naive RAG system that ignores these domain details produces confidently wrong answers.
 
@@ -637,3 +716,57 @@ The three-layer caching strategy was designed around the observation that differ
 5. **Cost observability drives trust.** Showing users exactly what each query costs (in tokens and dollars) with an efficiency grade builds confidence that the system isn't wasteful. It also helps during development — a query that suddenly costs 5x more than similar queries usually indicates a retrieval bug.
 
 6. **Config-driven guardrails enable iteration.** Moving all thresholds, weights, and keywords into `guardrails.yaml` was one of the best architectural decisions. Tuning confidence scoring weights or contradiction detection sensitivity doesn't require code changes, testing, or deployment — just a YAML edit.
+
+---
+
+## 10. Future Improvements
+
+### Scalability
+
+**Ticker coverage expansion**: The current system covers 10 tickers. Scaling to the full S&P 500 (or Russell 3000) would require:
+- **Partitioned tables**: `annual_facts` and `quarterly_facts` should be partitioned by ticker (or ticker range) to maintain query performance at 50-100x the current row count. PostgreSQL's declarative partitioning would enable partition pruning, keeping per-query scan costs constant regardless of total table size.
+- **HNSW indexes over IVFFlat**: At 500+ tickers, the vector tables would grow from ~130K to ~6.5M embeddings. IVFFlat recall degrades as data grows; HNSW provides better recall/latency trade-offs at scale. pgvector supports HNSW natively — switching requires only an index rebuild, no schema changes.
+- **Ingestion parallelism**: The current pipeline processes tickers sequentially with a single-threaded SEC EDGAR rate limiter. A distributed task queue (Celery + Redis, or Railway cron jobs) would allow parallel ingestion across tickers while respecting per-IP rate limits via a shared semaphore.
+- **Incremental embedding updates**: Currently, re-embedding requires reprocessing entire sections. A change-detection layer (hash of section text) would skip unchanged sections during re-ingestion, reducing embedding API costs by 80%+ on incremental updates.
+
+**Database scaling**:
+- **Read replicas**: For high-traffic deployments, a read replica for the FastAPI backend would offload vector search and relational queries from the primary. Railway supports this via linked PostgreSQL services.
+- **Connection pooling with PgBouncer**: The current `ThreadedConnectionPool` (max 10) is sufficient for single-instance deployment. At multiple backend replicas, a centralized PgBouncer would manage connection limits across instances.
+- **Materialized views for timeseries**: Pre-computing common timeseries aggregations (revenue by ticker by year) as materialized views would eliminate repeated joins for the most frequent query pattern.
+
+### Broader Filing Coverage
+
+**Additional filing types**:
+- **DEF 14A** (Proxy statements): Executive compensation, board composition, shareholder proposals. These contain governance data that users frequently ask about but the system currently can't answer.
+- **S-1** (IPO prospectuses): Historical context for companies' initial public offerings, including risk factors and financial projections not present in subsequent 10-K filings.
+- **13-F** (Institutional holdings): Portfolio holdings of large institutional investors. Would enable queries like "Who are Apple's largest institutional shareholders?"
+
+**International filings**: Extending to non-US markets (UK Companies House, Japan EDINET, EU ESMA) would require adapting the XBRL taxonomy mapping per jurisdiction and handling multiple accounting standards (IFRS vs. US GAAP).
+
+### RAG Pipeline Enhancements
+
+**Agentic retrieval**: The current 5-route system uses a single classification step to select a retrieval strategy. A more sophisticated approach would use an agent loop — classify, retrieve, evaluate, and re-retrieve if the initial results are insufficient. For example, if a `metric_lookup` returns no XBRL data, the agent could autonomously fall back to `narrative` search without a hardcoded fallback chain.
+
+**Multi-hop reasoning**: Queries like "How did Apple's supply chain risks change after COVID?" require retrieving 2019 risk factors, 2020-2021 risk factors, and synthesizing the delta. The current system retrieves all relevant chunks but relies on the LLM to perform the temporal comparison. A dedicated multi-hop retrieval step could explicitly construct "before" and "after" context windows.
+
+**Fine-tuned embedding model**: The current OpenAI `text-embedding-3-small` model is general-purpose. Fine-tuning on SEC filing text (or using a domain-adapted model like FinBERT for reranking) could improve retrieval precision for financial terminology. This would particularly help for ambiguous terms like "provisions" (accounting provision vs. legal provision vs. loan loss provision).
+
+**Streaming answer generation**: The current system streams SSE events for classification and retrieval plan, but the final answer arrives as a single block. Token-by-token streaming of the LLM response would improve perceived latency for longer answers.
+
+### Evaluation & Monitoring
+
+**Automated evaluation suite**: Building a benchmark dataset of (query, expected_answer, expected_route, expected_sources) pairs would enable regression testing of the RAG pipeline. Currently, quality is validated manually. A nightly eval run against 50-100 benchmark queries, with automated scoring of answer correctness, route accuracy, and confidence calibration, would catch degradation early.
+
+**Confidence calibration**: The current confidence scoring uses hand-tuned weights. With a labeled evaluation dataset, the weights could be calibrated empirically: for queries where the system says "High Confidence," what fraction of answers are actually correct? Calibration curves would reveal whether the system is over- or under-confident and guide weight adjustments.
+
+**Observability dashboard**: Per-query cost tracking exists, but aggregated metrics (daily query volume, cache hit rates, average response time by route, cost per day, most common failure modes) would support operational monitoring. A lightweight dashboard using the existing `/cache/stats` endpoint plus a query log table would provide this.
+
+**User feedback loop**: Adding a thumbs up/down on answers would create a feedback signal for iterating on prompt engineering, retrieval thresholds, and confidence weights. Even a small volume of user feedback (100-200 ratings) would be sufficient to identify systematic failure patterns.
+
+### Cost Optimization
+
+**Semantic caching**: The current cache uses exact query matching (after normalization). A semantic cache that embeds queries and retrieves cached answers for semantically similar (but not identical) queries would dramatically improve hit rates. "What was Apple's 2024 revenue?" and "How much did Apple make in 2024?" should return the same cached answer.
+
+**Tiered model routing**: Simple factual queries ("Apple's revenue in 2024") don't need GPT-4o-mini for answer generation — the retrieved XBRL data is the answer. A lightweight response formatter (template-based, no LLM) for relational routes would reduce cost to near-zero for ~40% of queries, reserving LLM generation for narrative and hybrid routes where synthesis is genuinely needed.
+
+**Embedding caching**: Query embeddings are generated on every request. Caching them in Redis (keyed by normalized query text) would eliminate redundant embedding API calls for repeated or similar queries.
