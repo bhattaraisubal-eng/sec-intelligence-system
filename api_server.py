@@ -8,6 +8,8 @@ import os
 import re
 import time
 import traceback
+from collections import defaultdict
+from datetime import date
 from urllib.parse import urlparse
 
 from dotenv import load_dotenv
@@ -25,9 +27,9 @@ if _database_url and not os.environ.get("PG_HOST"):
     os.environ.setdefault("PG_PASSWORD", _parsed.password or "")
     os.environ.setdefault("PG_DATABASE", _parsed.path.lstrip("/") or "sec_filings")
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from rag_query import rag_query, classify_query, build_retrieval_plan, CostTracker
@@ -51,6 +53,35 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- Rate Limiting (IP-based, daily reset) ---
+DAILY_QUERY_LIMIT = int(os.environ.get("DAILY_QUERY_LIMIT", "10"))
+_rate_limit_store: dict[str, dict] = defaultdict(lambda: {"date": date.today(), "count": 0})
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP, respecting proxy headers."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _check_rate_limit(ip: str) -> tuple[bool, int]:
+    """Check if IP is within daily limit. Returns (allowed, remaining)."""
+    today = date.today()
+    entry = _rate_limit_store[ip]
+    if entry["date"] != today:
+        entry["date"] = today
+        entry["count"] = 0
+    remaining = max(0, DAILY_QUERY_LIMIT - entry["count"])
+    return entry["count"] < DAILY_QUERY_LIMIT, remaining
+
+
+def _increment_rate_limit(ip: str):
+    """Increment query count for IP."""
+    _rate_limit_store[ip]["count"] += 1
+
 
 ROUTE_NAME_MAP = {
     "metric_lookup": "Metric Lookup",
@@ -231,8 +262,16 @@ def _sse_event(event_type, data):
 
 
 @app.post("/query/stream")
-def handle_query_stream(req: QueryRequest):
+def handle_query_stream(req: QueryRequest, request: Request):
     """SSE endpoint: streams classification + retrieval plan, then the full result."""
+    client_ip = _get_client_ip(request)
+    allowed, remaining = _check_rate_limit(client_ip)
+    if not allowed:
+        return JSONResponse(
+            status_code=429,
+            content={"error": "Daily query limit reached. Please try again tomorrow.", "limit": DAILY_QUERY_LIMIT},
+        )
+    _increment_rate_limit(client_ip)
 
     def generate():
         start = time.time()
@@ -330,8 +369,16 @@ def handle_query_stream(req: QueryRequest):
 
 
 @app.post("/query")
-def handle_query(req: QueryRequest):
+def handle_query(req: QueryRequest, request: Request):
     """Non-streaming endpoint (backwards compatible)."""
+    client_ip = _get_client_ip(request)
+    allowed, remaining = _check_rate_limit(client_ip)
+    if not allowed:
+        return JSONResponse(
+            status_code=429,
+            content={"error": "Daily query limit reached. Please try again tomorrow.", "limit": DAILY_QUERY_LIMIT},
+        )
+    _increment_rate_limit(client_ip)
     start = time.time()
 
     try:
@@ -370,6 +417,14 @@ def handle_query(req: QueryRequest):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/rate-limit/status")
+def rate_limit_status(request: Request):
+    """Check remaining queries for the calling IP."""
+    client_ip = _get_client_ip(request)
+    allowed, remaining = _check_rate_limit(client_ip)
+    return {"limit": DAILY_QUERY_LIMIT, "remaining": remaining, "allowed": allowed}
 
 
 

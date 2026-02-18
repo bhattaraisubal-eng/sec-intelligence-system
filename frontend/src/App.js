@@ -24,6 +24,7 @@ function useTypewriter(text, speed = 80) {
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
+const DAILY_QUERY_LIMIT = parseInt(process.env.REACT_APP_DAILY_QUERY_LIMIT || "10", 10);
 const TICKERS = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "BRK-B", "LLY", "AVGO", "JPM"];
 
 const ROUTE_LABELS = {
@@ -1805,6 +1806,15 @@ function App() {
   const [, setPlanComplete] = useState(false);
   const stepTimerRef = useRef(null);
   const [sessionCost, setSessionCost] = useState(0);
+  const [queriesRemaining, setQueriesRemaining] = useState(null);
+
+  // Fetch rate limit status on mount
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/rate-limit/status`)
+      .then((r) => r.json())
+      .then((data) => setQueriesRemaining(data.remaining))
+      .catch(() => {});
+  }, []);
 
   // Clock
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -1835,6 +1845,12 @@ function App() {
         body: JSON.stringify({ query: q }),
       });
 
+      if (res.status === 429) {
+        const body = await res.json();
+        setError(body.error || "Daily query limit reached. Please try again tomorrow.");
+        setLoading(false);
+        return;
+      }
       if (!res.ok) {
         throw new Error(`Server responded with ${res.status}: ${res.statusText}`);
       }
@@ -1896,6 +1912,7 @@ function App() {
             if (eventData.cost?.total_cost) {
               setSessionCost(prev => prev + eventData.cost.total_cost);
             }
+            setQueriesRemaining((prev) => (prev != null ? Math.max(0, prev - 1) : prev));
             setLoading(false);
           }
 
@@ -2244,6 +2261,15 @@ function App() {
           )}
         </div>
         <div className="flex items-center gap-3">
+          {queriesRemaining != null && (
+            <span className="text-bb-gray-400">
+              Queries:{" "}
+              <span className={`tabular-nums font-semibold ${queriesRemaining <= 2 ? "text-red-400" : queriesRemaining <= 5 ? "text-amber" : "text-term-green"}`}>
+                {queriesRemaining}
+              </span>
+              <span className="text-bb-gray-500">/{DAILY_QUERY_LIMIT}</span>
+            </span>
+          )}
           {sessionCost > 0 && (
             <span className="text-bb-gray-400">
               Session:{" "}
