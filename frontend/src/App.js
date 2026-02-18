@@ -1358,6 +1358,11 @@ function LandingPage() {
         </span>
       </div>
 
+      {/* Developer attribution */}
+      <p className="mt-4 text-xs font-mono text-bb-gray-500 animate-fade-up" style={{ animationDelay: "3.8s" }}>
+        Developed by Subal Bhattarai
+      </p>
+
       {/* ── Architecture Deep Dive ── */}
       <div className="mt-16 w-full text-left">
 
@@ -2249,6 +2254,7 @@ function App() {
               </span>
             </span>
           )}
+          <span className="text-bb-gray-500">Subal Bhattarai</span>
         </div>
       </footer>
     </div>
