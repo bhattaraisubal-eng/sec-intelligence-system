@@ -188,9 +188,7 @@ SEC EDGAR API
     |
     v
 5. Chunk sections + generate embeddings -> sections_10k, sections_10q
-    |
-    v
-6. Parse 8-K earnings -> earnings_reports
+
 ```
 
 Rate limited at 0.15s between SEC EDGAR API calls.
