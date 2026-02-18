@@ -31,7 +31,7 @@ Central metadata table for all SEC filings.
 | id | SERIAL PK | |
 | ticker | VARCHAR(10) | Company ticker symbol |
 | company_name | VARCHAR(255) | |
-| form_type | VARCHAR(20) | 10-K, 10-Q, 8-K |
+| form_type | VARCHAR(20) | 10-K, 10-Q|
 | filing_date | DATE | Date filed with SEC |
 | accession_number | VARCHAR(50) UNIQUE | SEC EDGAR accession number |
 | fiscal_year | INT | |
@@ -73,35 +73,6 @@ XBRL facts from 10-K filings (one row per concept per year).
 XBRL facts from 10-Q filings. Same schema as `annual_facts` plus `fiscal_quarter INT`.
 
 **Indexes**: Same pattern as annual, with `fiscal_quarter` added to composite indexes.
-
-### `earnings_reports`
-
-Parsed 8-K earnings data with key financial metrics.
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | SERIAL PK | |
-| filing_id | INT FK -> filings | |
-| ticker | VARCHAR(10) | |
-| company_name | VARCHAR(255) | |
-| fiscal_year | INT | |
-| fiscal_quarter | INT | |
-| filing_date | DATE | |
-| document_name | VARCHAR(500) | |
-| revenue | NUMERIC | |
-| net_income | NUMERIC | |
-| eps_basic | NUMERIC | |
-| eps_diluted | NUMERIC | |
-| gross_profit | NUMERIC | |
-| operating_income | NUMERIC | |
-| total_assets | NUMERIC | |
-| total_liabilities | NUMERIC | |
-| cash_and_equivalents | NUMERIC | |
-| operating_cash_flow | NUMERIC | |
-| earnings_text | TEXT | Full earnings release text |
-| report_period_start | DATE | |
-| report_period_end | DATE | |
-| created_at | TIMESTAMP | |
 
 ### `filing_sections`
 
@@ -219,7 +190,6 @@ LIMIT $4;
 | sections_10k | ~42K | 10-K chunks with embeddings |
 | financial_documents | ~1.8K | Markdown financial statements |
 | filings | ~637 | Filing metadata |
-| earnings_reports | ~355 | 8-K earnings summaries |
 | filing_sections | ~279 | Raw section extractions |
 
 **Total database size**: ~3 GB
