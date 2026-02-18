@@ -175,7 +175,7 @@ The `backfill_pipeline.py` orchestrates the full ingestion:
 SEC EDGAR API
     |
     v
-1. Fetch filings metadata (10-K, 10-Q, 8-K)
+1. Fetch filings metadata (10-K, 10-Q)
     |
     v
 2. Parse XBRL -> annual_facts, quarterly_facts
