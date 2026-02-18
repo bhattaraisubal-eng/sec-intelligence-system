@@ -37,6 +37,7 @@ Streamed Response (SSE)
 ```
 
 For detailed documentation, see:
+- [Key Decisions & Challenges](docs/decisions-and-challenges.md) - Engineering trade-offs, domain complexities, and lessons learned
 - [System Architecture](docs/architecture.md) - Component design, data flow, caching, guardrails
 - [Database Design](docs/database.md) - Table schemas, indexes, vector search, data volumes
 - [Retrieval Routes](docs/retrieval-routes.md) - How each query route works with examples
