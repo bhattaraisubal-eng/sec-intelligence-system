@@ -1679,6 +1679,18 @@ def _resolve_xbrl_concepts(classification: dict) -> dict[str, list[str]]:
             if not matched:
                 resolved.setdefault(tag, []).append(tag)
 
+    # Expand resolved terms with full CONCEPT_ALIASES variants.
+    # The classifier may return only one XBRL concept (e.g. us-gaap:Revenues)
+    # but different companies use different concept names for the same metric.
+    # Ensure all known aliases are available so each ticker can match its variant.
+    for term in list(resolved.keys()):
+        term_lower = term.lower()
+        if term_lower in CONCEPT_ALIASES:
+            existing = set(resolved[term])
+            for alias in CONCEPT_ALIASES[term_lower]:
+                if alias not in existing:
+                    resolved[term].append(alias)
+
     resolved_terms = set(resolved.keys())
     unresolved = [c for c in concepts if c not in resolved_terms]
     if unresolved:
@@ -2363,7 +2375,7 @@ def _build_financial_snapshot(classification: dict) -> str:
                 if label in metrics_found:
                     continue  # Skip duplicate labels (e.g. multiple revenue concepts)
                 try:
-                    ts = get_metric_timeseries(ticker, concept)
+                    ts = get_metric_timeseries(ticker, concept, table="annual_facts")
                     vals = [t for t in ts if t.get("fiscal_year") == year]
                     if vals and vals[0].get("value"):
                         val = float(vals[0]["value"])
