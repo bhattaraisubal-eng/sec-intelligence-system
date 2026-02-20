@@ -57,6 +57,7 @@ app.add_middleware(
 # --- Rate Limiting (IP-based + global daily cap) ---
 DAILY_QUERY_LIMIT = int(os.environ.get("DAILY_QUERY_LIMIT", "5"))
 GLOBAL_DAILY_LIMIT = int(os.environ.get("GLOBAL_DAILY_LIMIT", "50"))
+ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY", "")
 _rate_limit_store: dict[str, dict] = defaultdict(lambda: {"date": date.today(), "count": 0})
 _global_counter: dict[str, int | object] = {"date": date.today(), "count": 0}
 
@@ -67,6 +68,14 @@ def _get_client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
+
+
+def _is_admin(request: Request) -> bool:
+    """Check if request carries a valid admin API key (bypasses rate limits)."""
+    if not ADMIN_API_KEY:
+        return False
+    key = request.headers.get("x-admin-key") or request.query_params.get("admin_key")
+    return key == ADMIN_API_KEY
 
 
 def _check_rate_limit(ip: str) -> tuple[bool, int, str | None]:
@@ -286,15 +295,17 @@ def _sse_event(event_type, data):
 @app.post("/query/stream")
 def handle_query_stream(req: QueryRequest, request: Request):
     """SSE endpoint: streams classification + retrieval plan, then the full result."""
-    client_ip = _get_client_ip(request)
-    allowed, remaining, reason = _check_rate_limit(client_ip)
-    if not allowed:
-        msg = "Service query limit reached for today. Please try again tomorrow." if reason == "global" else "Daily query limit reached. Please try again tomorrow."
-        return JSONResponse(
-            status_code=429,
-            content={"error": msg, "limit": DAILY_QUERY_LIMIT},
-        )
-    _increment_rate_limit(client_ip)
+    admin = _is_admin(request)
+    if not admin:
+        client_ip = _get_client_ip(request)
+        allowed, remaining, reason = _check_rate_limit(client_ip)
+        if not allowed:
+            msg = "Service query limit reached for today. Please try again tomorrow." if reason == "global" else "Daily query limit reached. Please try again tomorrow."
+            return JSONResponse(
+                status_code=429,
+                content={"error": msg, "limit": DAILY_QUERY_LIMIT},
+            )
+        _increment_rate_limit(client_ip)
 
     def generate():
         start = time.time()
@@ -394,15 +405,17 @@ def handle_query_stream(req: QueryRequest, request: Request):
 @app.post("/query")
 def handle_query(req: QueryRequest, request: Request):
     """Non-streaming endpoint (backwards compatible)."""
-    client_ip = _get_client_ip(request)
-    allowed, remaining, reason = _check_rate_limit(client_ip)
-    if not allowed:
-        msg = "Service query limit reached for today. Please try again tomorrow." if reason == "global" else "Daily query limit reached. Please try again tomorrow."
-        return JSONResponse(
-            status_code=429,
-            content={"error": msg, "limit": DAILY_QUERY_LIMIT},
-        )
-    _increment_rate_limit(client_ip)
+    admin = _is_admin(request)
+    if not admin:
+        client_ip = _get_client_ip(request)
+        allowed, remaining, reason = _check_rate_limit(client_ip)
+        if not allowed:
+            msg = "Service query limit reached for today. Please try again tomorrow." if reason == "global" else "Daily query limit reached. Please try again tomorrow."
+            return JSONResponse(
+                status_code=429,
+                content={"error": msg, "limit": DAILY_QUERY_LIMIT},
+            )
+        _increment_rate_limit(client_ip)
     start = time.time()
 
     try:

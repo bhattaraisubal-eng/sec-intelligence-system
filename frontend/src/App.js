@@ -25,6 +25,10 @@ const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
 const DAILY_QUERY_LIMIT = parseInt(process.env.REACT_APP_DAILY_QUERY_LIMIT || "5", 10);
+
+// Admin key from URL param (?admin_key=...) — bypasses rate limits
+const _urlParams = new URLSearchParams(window.location.search);
+const ADMIN_KEY = _urlParams.get("admin_key") || "";
 const TICKERS = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "BRK-B", "LLY", "AVGO", "JPM"];
 
 const ROUTE_LABELS = {
@@ -1853,9 +1857,11 @@ function App() {
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (ADMIN_KEY) headers["x-admin-key"] = ADMIN_KEY;
       const res = await fetch(`${BACKEND_URL}/query/stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ query: q }),
       });
 
