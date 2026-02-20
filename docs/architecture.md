@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SEC RAG System is a retrieval-augmented generation pipeline that answers natural language questions about SEC filings. It combines structured XBRL data, full financial statements, and semantic vector search over filing narratives.
+The SEC Filing Intelligence Engine is a financial data retrieval system that answers natural language questions about SEC filings. Under the hood, it leverages retrieval-augmented generation (RAG) — combining structured XBRL relational queries, full financial statements, and semantic vector search over filing narratives.
 
 ## High-Level Data Flow
 

@@ -1,6 +1,6 @@
 # Key Decisions & Challenges
 
-This document captures the engineering decisions, technical challenges, and domain-specific complexities encountered while building the SEC RAG system — from raw data ingestion through answer generation. It reflects the iterative problem-solving process behind a production-grade financial AI system.
+This document captures the engineering decisions, technical challenges, and domain-specific complexities encountered while building the SEC Filing Intelligence Engine — from raw data ingestion through answer generation. It reflects the iterative problem-solving process behind a production-grade financial AI system.
 
 ---
 

@@ -1508,10 +1508,10 @@ function LandingPage() {
           </div>
         </Reveal>
 
-        {/* RAG Pipeline */}
+        {/* Query Pipeline */}
         <Reveal delay={150}>
           <div className="rounded border border-bb-border bg-bb-surface p-5 mb-5">
-            <h3 className="text-base font-mono font-semibold text-accent mb-3">RAG Pipeline</h3>
+            <h3 className="text-base font-mono font-semibold text-accent mb-3">Query Pipeline</h3>
             <p className="text-sm font-mono text-bb-gray-300 leading-relaxed mb-4">
               Each query is classified, decomposed into sub-queries, routed through up to 5 retrieval
               strategies (XBRL lookup, timeseries, vector search, hybrid fusion, full statements), then
@@ -2208,7 +2208,7 @@ function App() {
               </div>
             )}
 
-            {/* Empty state — RAG application overview */}
+            {/* Empty state — application overview */}
             {!loading && !result && !error && !classification && (
               <LandingPage />
             )}
