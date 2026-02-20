@@ -6,34 +6,62 @@ A retrieval-augmented generation (RAG) system for querying SEC filings (10-K, 10
 
 ## Architecture
 
+```mermaid
+graph TD
+    A["🔍 User Query"] --> B["React Frontend<br/>(Vercel)"]
+    B -->|SSE| C["FastAPI Backend<br/>(Railway)"]
+    C --> D["Query Classifier<br/>(GPT-4o-mini)"]
+    D --> E{Retrieval Router}
+
+    E -->|"metric_lookup"| F["XBRL Facts<br/>annual_facts / quarterly_facts"]
+    E -->|"timeseries"| G["XBRL Timeseries<br/>multi-period data"]
+    E -->|"full_statement"| H["Financial Statements<br/>income / balance / cash flow"]
+    E -->|"narrative"| I["Vector Search<br/>pgvector cosine similarity"]
+    E -->|"hybrid"| J["Relational + Vector<br/>combined retrieval"]
+
+    F --> K["PostgreSQL"]
+    G --> K
+    H --> K
+    I --> K
+    J --> K
+
+    I --> L["Cross-Encoder Reranker<br/>ms-marco-MiniLM-L-6-v2"]
+    J --> L
+
+    K --> M["Guardrails"]
+    L --> M
+
+    M -->|"filter + validate"| N["Contradiction Detection<br/>narrative vs XBRL"]
+    N --> O["Confidence Scoring<br/>5 weighted signals → 0-100"]
+    O --> P["Answer Generation<br/>(GPT-4o-mini)"]
+    P --> Q["Streamed Response<br/>with source attribution"]
+
+    style A fill:#10b981,stroke:#065f46,color:#fff
+    style E fill:#f59e0b,stroke:#92400e,color:#fff
+    style K fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style L fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    style O fill:#10b981,stroke:#065f46,color:#fff
+    style Q fill:#10b981,stroke:#065f46,color:#fff
 ```
-User Query
-    |
-    v
-React Frontend (Vercel)
-    |
-    v
-FastAPI Backend (Railway)
-    |
-    +---> Query Classifier (GPT-4o-mini)
-    |         |
-    |         v
-    +---> Retrieval Router
-    |       |
-    |       +---> metric_lookup   (XBRL facts from PostgreSQL)
-    |       +---> timeseries      (multi-period XBRL data)
-    |       +---> full_statement  (complete financial statements)
-    |       +---> narrative       (semantic search via pgvector)
-    |       +---> hybrid          (vector + relational combined)
-    |       |
-    |       v
-    +---> Answer Generation (GPT-4o-mini)
-    |       |
-    |       v
-    +---> Guardrails + Confidence Scoring
-    |
-    v
-Streamed Response (SSE)
+
+### Data Ingestion Pipeline
+
+```mermaid
+graph LR
+    A["SEC EDGAR API"] -->|"rate limited"| B["Fetch Filing Metadata"]
+    B --> C["Parse XBRL"]
+    C --> D["annual_facts<br/>quarterly_facts"]
+    B --> E["Fetch Financial Statements"]
+    E --> F["financial_documents"]
+    B --> G["Extract Sections"]
+    G --> H["filing_sections"]
+    H --> I["Chunk + Embed<br/>(text-embedding-3-small)"]
+    I --> J["sections_10k<br/>sections_10q<br/>(pgvector)"]
+
+    style A fill:#f59e0b,stroke:#92400e,color:#fff
+    style D fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style F fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style J fill:#8b5cf6,stroke:#4c1d95,color:#fff
 ```
 
 For detailed documentation, see:
