@@ -24,7 +24,7 @@ function useTypewriter(text, speed = 80) {
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
-const DAILY_QUERY_LIMIT = parseInt(process.env.REACT_APP_DAILY_QUERY_LIMIT || "10", 10);
+const DAILY_QUERY_LIMIT = parseInt(process.env.REACT_APP_DAILY_QUERY_LIMIT || "5", 10);
 const TICKERS = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "BRK-B", "LLY", "AVGO", "JPM"];
 
 const ROUTE_LABELS = {
