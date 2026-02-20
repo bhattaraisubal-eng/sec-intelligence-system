@@ -54,9 +54,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Rate Limiting (IP-based, daily reset) ---
+# --- Rate Limiting (IP-based + global daily cap) ---
 DAILY_QUERY_LIMIT = int(os.environ.get("DAILY_QUERY_LIMIT", "10"))
+GLOBAL_DAILY_LIMIT = int(os.environ.get("GLOBAL_DAILY_LIMIT", "50"))
 _rate_limit_store: dict[str, dict] = defaultdict(lambda: {"date": date.today(), "count": 0})
+_global_counter: dict[str, int | object] = {"date": date.today(), "count": 0}
 
 
 def _get_client_ip(request: Request) -> str:
@@ -67,20 +69,40 @@ def _get_client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def _check_rate_limit(ip: str) -> tuple[bool, int]:
-    """Check if IP is within daily limit. Returns (allowed, remaining)."""
+def _check_rate_limit(ip: str) -> tuple[bool, int, str | None]:
+    """Check if IP is within daily limit and global cap. Returns (allowed, remaining, reason)."""
     today = date.today()
+
+    # Reset global counter on new day
+    if _global_counter["date"] != today:
+        _global_counter["date"] = today
+        _global_counter["count"] = 0
+
+    # Check global limit first
+    if _global_counter["count"] >= GLOBAL_DAILY_LIMIT:
+        return False, 0, "global"
+
+    # Check per-IP limit
     entry = _rate_limit_store[ip]
     if entry["date"] != today:
         entry["date"] = today
         entry["count"] = 0
-    remaining = max(0, DAILY_QUERY_LIMIT - entry["count"])
-    return entry["count"] < DAILY_QUERY_LIMIT, remaining
+
+    if entry["count"] >= DAILY_QUERY_LIMIT:
+        remaining = 0
+        return False, remaining, "ip"
+
+    remaining = min(
+        DAILY_QUERY_LIMIT - entry["count"],
+        GLOBAL_DAILY_LIMIT - int(_global_counter["count"]),
+    )
+    return True, remaining, None
 
 
 def _increment_rate_limit(ip: str):
-    """Increment query count for IP."""
+    """Increment query count for IP and global counter."""
     _rate_limit_store[ip]["count"] += 1
+    _global_counter["count"] = int(_global_counter["count"]) + 1
 
 
 ROUTE_NAME_MAP = {
@@ -265,11 +287,12 @@ def _sse_event(event_type, data):
 def handle_query_stream(req: QueryRequest, request: Request):
     """SSE endpoint: streams classification + retrieval plan, then the full result."""
     client_ip = _get_client_ip(request)
-    allowed, remaining = _check_rate_limit(client_ip)
+    allowed, remaining, reason = _check_rate_limit(client_ip)
     if not allowed:
+        msg = "Service query limit reached for today. Please try again tomorrow." if reason == "global" else "Daily query limit reached. Please try again tomorrow."
         return JSONResponse(
             status_code=429,
-            content={"error": "Daily query limit reached. Please try again tomorrow.", "limit": DAILY_QUERY_LIMIT},
+            content={"error": msg, "limit": DAILY_QUERY_LIMIT},
         )
     _increment_rate_limit(client_ip)
 
@@ -372,11 +395,12 @@ def handle_query_stream(req: QueryRequest, request: Request):
 def handle_query(req: QueryRequest, request: Request):
     """Non-streaming endpoint (backwards compatible)."""
     client_ip = _get_client_ip(request)
-    allowed, remaining = _check_rate_limit(client_ip)
+    allowed, remaining, reason = _check_rate_limit(client_ip)
     if not allowed:
+        msg = "Service query limit reached for today. Please try again tomorrow." if reason == "global" else "Daily query limit reached. Please try again tomorrow."
         return JSONResponse(
             status_code=429,
-            content={"error": "Daily query limit reached. Please try again tomorrow.", "limit": DAILY_QUERY_LIMIT},
+            content={"error": msg, "limit": DAILY_QUERY_LIMIT},
         )
     _increment_rate_limit(client_ip)
     start = time.time()
@@ -423,8 +447,8 @@ def health():
 def rate_limit_status(request: Request):
     """Check remaining queries for the calling IP."""
     client_ip = _get_client_ip(request)
-    allowed, remaining = _check_rate_limit(client_ip)
-    return {"limit": DAILY_QUERY_LIMIT, "remaining": remaining, "allowed": allowed}
+    allowed, remaining, reason = _check_rate_limit(client_ip)
+    return {"limit": DAILY_QUERY_LIMIT, "global_limit": GLOBAL_DAILY_LIMIT, "remaining": remaining, "allowed": allowed}
 
 
 
