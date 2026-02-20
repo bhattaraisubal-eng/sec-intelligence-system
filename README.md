@@ -10,12 +10,35 @@
 
 ### The problem
 
-Financial analysts deal with this every day:
+Compare revenue of AAPL vs MSFT 2023 and what contributed the most to revenue generation for each companies.
+Sounds simple, right?
+Now let’s see what it actually takes.
+🔎 If You Do This Manually:
+Step 1:
+Go to SEC EDGAR.
+Step 2:
+Find Apple’s FY2023 10-K.
+Step 3:
+Scroll through 80+ pages of legal text.
+Step 4:
+Locate the Consolidated Statements of Operations.
+Step 5:
+Extract total revenue.
+Step 6:
+Scroll further to find “Revenue by Segment” footnotes.
+Step 7:
+Identify which segment contributed the most (iPhone? Services?).
+Now repeat the entire process for Microsoft:
+Find Microsoft FY2023 10-K
+Extract total revenue
+Locate segment reporting
+Compare Intelligent Cloud vs Productivity vs Personal Computing
+Normalize fiscal year differences (Apple ends Sept, Microsoft ends June)
+Cross-check management commentary in MD&A
+Make sure numbers tie to XBRL
+That’s easily 30–60 minutes.
+For one question.
 
-- **Finding a single number takes 15+ minutes** — open SEC EDGAR, find the right 10-Q, download the filing, scroll through 80 pages of legal boilerplate to locate the income statement
-- **Year-over-year comparison? Double the work** — repeat the entire process for last year's filing, then manually calculate the delta
-- **Management says "strong growth" — but did revenue actually grow?** — cross-referencing MD&A narrative against XBRL data is tedious, error-prone, and completely unscalable
-- **Existing tools solve half the problem** — Bloomberg gives you numbers but not narrative context; ChatGPT can summarize text but hallucinates financial figures
 
 ### The core insight
 
