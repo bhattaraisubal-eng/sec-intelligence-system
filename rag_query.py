@@ -567,6 +567,21 @@ _ROUTE_MIGRATION = {
 }
 
 
+def _post_classify(query: str, classification: dict) -> dict:
+    """Apply post-classification fixes that must run even on cached results.
+
+    This handles corrections added after classifications were already cached
+    (e.g. query_type upgrades, route overrides).
+    """
+    import re as _re
+    _RISK_KEYWORDS = r'\brisk(?:s| factors?| factor)\b|\bitem\s*1a\b|\brisk management\b'
+    _QUALITATIVE_KEYWORDS = r'\blitigation\b|\bregulatory\b|\bgovernance\b|\bcorporate governance\b'
+    if _re.search(_RISK_KEYWORDS + '|' + _QUALITATIVE_KEYWORDS, query, _re.IGNORECASE):
+        if classification.get("query_type") == "factual":
+            classification["query_type"] = "risk_analysis"
+    return classification
+
+
 def classify_query(query: str, *, cost_tracker: CostTracker | None = None) -> dict:
     """Use LLM function calling to classify the query and extract metadata."""
     # Check cache first
@@ -575,6 +590,9 @@ def classify_query(query: str, *, cost_tracker: CostTracker | None = None) -> di
         cached["_cache_hit"] = True
         if cost_tracker:
             cost_tracker.record_cache_hit("classify")
+        # Apply post-classification fixes to cached results too (fixes added
+        # after the classification was originally cached).
+        cached = _post_classify(query, cached)
         return cached
 
     _t0 = time.time()
@@ -711,12 +729,18 @@ def classify_query(query: str, *, cost_tracker: CostTracker | None = None) -> di
     import re as _re2
     _RISK_KEYWORDS = r'\brisk(?:s| factors?| factor)\b|\bitem\s*1a\b|\brisk management\b'
     _QUALITATIVE_KEYWORDS = r'\blitigation\b|\bregulatory\b|\bgovernance\b|\bcorporate governance\b'
+    _is_risk_query = _re2.search(_RISK_KEYWORDS + '|' + _QUALITATIVE_KEYWORDS, query, _re2.IGNORECASE)
     if (
         classification["route"] in ("metric_lookup", "timeseries", "full_statement")
-        and _re2.search(_RISK_KEYWORDS + '|' + _QUALITATIVE_KEYWORDS, query, _re2.IGNORECASE)
+        and _is_risk_query
         and not classification.get("xbrl_concepts")  # no explicit XBRL metrics requested
     ):
         classification["route"] = "narrative"
+
+    # Ensure risk/qualitative queries get the right query_type so downstream
+    # logic fetches more chunks, adds risk sub-queries, and prepends a financial snapshot.
+    if _is_risk_query and classification["query_type"] == "factual":
+        classification["query_type"] = "risk_analysis"
 
     # Post-classification route override: correct misroutes when the LLM's own
     # metadata signals a quantitative query (XBRL concepts present, retrieval
@@ -2345,6 +2369,11 @@ def _build_financial_snapshot(classification: dict) -> str:
     fiscal_year = classification.get("fiscal_year")
     if not years_involved and fiscal_year:
         years_involved = [fiscal_year]
+    # Auto-resolve to latest fiscal year when none specified (e.g. "latest 10-K")
+    if not years_involved and tickers:
+        latest = get_latest_fiscal_year(tickers[0])
+        if latest:
+            years_involved = [latest]
     if not tickers or not years_involved:
         return ""
 
