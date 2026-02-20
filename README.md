@@ -4,6 +4,22 @@ A retrieval-augmented generation (RAG) system for querying SEC filings (10-K, 10
 
 **Live Demo:** [sec-rag-system.vercel.app](https://sec-rag-system.vercel.app)
 
+<!-- Replace with your own demo GIF or screenshot -->
+![Demo](demo.gif)
+
+## Why I Built This
+
+Financial data is public but not accessible. SEC EDGAR has every 10-K and 10-Q ever filed, yet answering a simple question like "What was Apple's revenue in 2023?" requires navigating XBRL taxonomies, understanding fiscal year calendars, and parsing dense legal filings.
+
+I wanted to solve this end-to-end: not just build a chatbot on top of documents, but design a system that actually *understands* financial data. That meant:
+
+- **Parsing XBRL**, not just text — structured financial facts are more reliable than extracting numbers from prose
+- **Handling domain quirks** — NVIDIA's fiscal year ends in January, XBRL concepts get renamed across years, and Q4 data doesn't exist in SEC filings (it has to be derived)
+- **Building trust** — every answer includes a 0-100 confidence score, source links to sec.gov, and contradiction detection between narrative claims and actual numbers
+- **Routing intelligently** — a question about revenue needs a different retrieval strategy than "What are Apple's risk factors?" so the system classifies queries and routes them across 5 specialized pipelines
+
+This project pushed me to think deeply about data quality, retrieval architecture, and what it takes to build AI systems that are actually trustworthy with financial data.
+
 ## Architecture
 
 ```mermaid
