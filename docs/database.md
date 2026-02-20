@@ -8,11 +8,16 @@ PostgreSQL 17 with the pgvector extension. All tables live in the `public` schem
 
 ```mermaid
 erDiagram
+    filings ||--o{ filing_sections : "has"
     filings ||--o{ annual_facts : "has"
     filings ||--o{ quarterly_facts : "has"
-    filings ||--o{ earnings_reports : "has"
-    filings ||--o{ filing_sections : "has"
 
+    filing_sections {
+        int id PK
+        int filing_id FK
+        varchar section_key
+        text section_text
+    }
     filings {
         int id PK
         varchar ticker
