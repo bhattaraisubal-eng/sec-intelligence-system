@@ -14,29 +14,29 @@ Compare revenue of AAPL vs MSFT 2023 and what contributed the most to revenue ge
 Sounds simple, right?
 Now let’s see what it actually takes.
 🔎 If You Do This Manually:
-Step 1:
+-Step 1:
 Go to SEC EDGAR.
-Step 2:
+-Step 2:
 Find Apple’s FY2023 10-K.
-Step 3:
+-Step 3:
 Scroll through 80+ pages of legal text.
-Step 4:
+-Step 4:
 Locate the Consolidated Statements of Operations.
-Step 5:
+-Step 5:
 Extract total revenue.
-Step 6:
+-Step 6:
 Scroll further to find “Revenue by Segment” footnotes.
-Step 7:
+-Step 7:
 Identify which segment contributed the most (iPhone? Services?).
-Now repeat the entire process for Microsoft:
-Find Microsoft FY2023 10-K
-Extract total revenue
-Locate segment reporting
-Compare Intelligent Cloud vs Productivity vs Personal Computing
-Normalize fiscal year differences (Apple ends Sept, Microsoft ends June)
-Cross-check management commentary in MD&A
-Make sure numbers tie to XBRL
-That’s easily 30–60 minutes.
+-Now repeat the entire process for Microsoft:
+-Find Microsoft FY2023 10-K
+-Extract total revenue
+-Locate segment reporting
+-Compare Intelligent Cloud vs Productivity vs Personal Computing
+-Normalize fiscal year differences (Apple ends Sept, Microsoft ends June)
+-Cross-check management commentary in MD&A
+-Make sure numbers tie to XBRL
+-That’s easily 30–60 minutes.
 For one question.
 
 
