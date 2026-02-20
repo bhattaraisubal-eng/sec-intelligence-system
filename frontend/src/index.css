@@ -4,51 +4,51 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bloomberg-style scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #0c0f14;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: #1e2433;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #444444;
+  background: #2a3040;
 }
 
 /* Text glow utilities */
-.text-glow-green {
-  text-shadow: 0 0 8px rgba(0, 210, 106, 0.5), 0 0 20px rgba(0, 210, 106, 0.2);
+.text-glow-teal {
+  text-shadow: 0 0 8px rgba(20, 184, 166, 0.4), 0 0 20px rgba(20, 184, 166, 0.15);
 }
 .text-glow-amber {
-  text-shadow: 0 0 8px rgba(255, 149, 0, 0.5), 0 0 20px rgba(255, 149, 0, 0.2);
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.4), 0 0 20px rgba(245, 158, 11, 0.15);
 }
 .text-glow-blue {
-  text-shadow: 0 0 8px rgba(41, 98, 255, 0.5), 0 0 20px rgba(41, 98, 255, 0.2);
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.4), 0 0 20px rgba(59, 130, 246, 0.15);
 }
 
-/* Bloomberg panel inset border style */
+/* Panel inset border style */
 .bb-panel-inset {
-  border: 1px solid #1e1e1e;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  border: 1px solid #1e2433;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
 }
 
 /* Row hover for tables and lists */
 .bb-row-hover {
-  transition: background-color 0.1s ease;
+  transition: background-color 0.15s ease;
 }
 .bb-row-hover:hover {
-  background-color: #1a1a1a;
+  background-color: #222838;
 }
 
 /* Selection color */
 ::selection {
-  background: rgba(0, 210, 106, 0.3);
-  color: #f5f5f5;
+  background: rgba(20, 184, 166, 0.25);
+  color: #f1f5f9;
 }
 
 @keyframes shimmer {
@@ -62,12 +62,12 @@
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes glow-pulse {
-  0%, 100% { text-shadow: 0 0 8px rgba(0, 210, 106, 0.5), 0 0 20px rgba(0, 210, 106, 0.2); }
-  50% { text-shadow: 0 0 16px rgba(0, 210, 106, 0.7), 0 0 40px rgba(0, 210, 106, 0.3), 0 0 60px rgba(0, 210, 106, 0.1); }
+  0%, 100% { text-shadow: 0 0 8px rgba(20, 184, 166, 0.4), 0 0 20px rgba(20, 184, 166, 0.15); }
+  50% { text-shadow: 0 0 16px rgba(20, 184, 166, 0.6), 0 0 40px rgba(20, 184, 166, 0.25), 0 0 60px rgba(20, 184, 166, 0.08); }
 }
 @keyframes count-border {
-  from { border-color: rgba(0, 210, 106, 0.4); }
-  to { border-color: rgba(30, 30, 30, 1); }
+  from { border-color: rgba(20, 184, 166, 0.35); }
+  to { border-color: rgba(30, 36, 51, 1); }
 }
 .animate-fade-up {
   opacity: 0;

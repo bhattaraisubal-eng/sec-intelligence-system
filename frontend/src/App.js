@@ -278,14 +278,14 @@ function renderInline(text, sources) {
       if (innerArrow) {
         const isUp = innerArrow[1] === "\u2191";
         parts.push(
-          <strong key={key++} className={`font-semibold inline-flex items-center gap-0.5 ${isUp ? "text-term-green" : "text-bb_red"}`}>
+          <strong key={key++} className={`font-semibold inline-flex items-center gap-0.5 ${isUp ? "text-accent" : "text-bb_red"}`}>
             {isUp ? UP_ARROW : DOWN_ARROW}{innerArrow[2]}
           </strong>
         );
       } else if (innerChange) {
         const isUp = innerChange[1] === "+";
         parts.push(
-          <strong key={key++} className={`font-semibold inline-flex items-center gap-0.5 ${isUp ? "text-term-green" : "text-bb_red"}`}>
+          <strong key={key++} className={`font-semibold inline-flex items-center gap-0.5 ${isUp ? "text-accent" : "text-bb_red"}`}>
             {isUp ? UP_ARROW : DOWN_ARROW}{innerChange[2]}
           </strong>
         );
@@ -299,7 +299,7 @@ function renderInline(text, sources) {
       const isUp = m[1] === "\u2191" || m[3] === "+";
       const displayText = m[1] ? m[2] : m[0];
       parts.push(
-        <span key={key++} className={`inline-flex items-center gap-0.5 font-semibold ${isUp ? "text-term-green" : "text-bb_red"}`}>
+        <span key={key++} className={`inline-flex items-center gap-0.5 font-semibold ${isUp ? "text-accent" : "text-bb_red"}`}>
           {isUp ? UP_ARROW : DOWN_ARROW}{displayText}
         </span>
       );
@@ -369,7 +369,7 @@ function renderTableCell(cell, sources) {
   if (arrowMatch) {
     const isUp = arrowMatch[1] === "\u2191";
     return (
-      <span className={`inline-flex items-center gap-0.5 font-semibold ${isUp ? "text-term-green" : "text-bb_red"}`}>
+      <span className={`inline-flex items-center gap-0.5 font-semibold ${isUp ? "text-accent" : "text-bb_red"}`}>
         {isUp ? UP_ARROW : DOWN_ARROW}{arrowMatch[2]}
       </span>
     );
@@ -378,7 +378,7 @@ function renderTableCell(cell, sources) {
   if (signedMatch) {
     const isUp = signedMatch[1] === "+";
     return (
-      <span className={`inline-flex items-center gap-0.5 font-semibold ${isUp ? "text-term-green" : "text-bb_red"}`}>
+      <span className={`inline-flex items-center gap-0.5 font-semibold ${isUp ? "text-accent" : "text-bb_red"}`}>
         {isUp ? UP_ARROW : DOWN_ARROW}{trimmed}
       </span>
     );
@@ -404,14 +404,14 @@ function RetrievalPlan({ steps, activeStep, completed }) {
   return (
     <div className="mt-4 bb-panel-inset rounded bg-bb-panel p-4">
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-xxs font-mono font-semibold uppercase tracking-widest text-term-green">
+        <span className="text-xxs font-mono font-semibold uppercase tracking-widest text-accent">
           Retrieval Plan
         </span>
         {!completed && (
           <span className="ml-auto text-xxs font-mono text-amber animate-pulse">EXECUTING...</span>
         )}
         {completed && (
-          <span className="ml-auto text-xxs font-mono text-term-green">COMPLETE</span>
+          <span className="ml-auto text-xxs font-mono text-accent">COMPLETE</span>
         )}
       </div>
 
@@ -425,15 +425,15 @@ function RetrievalPlan({ steps, activeStep, completed }) {
             <div
               key={i}
               className={`flex items-start gap-2 py-1.5 px-2 rounded transition-all duration-300 ${
-                isActive ? "bg-term-bg" : isDone ? "bg-transparent" : "opacity-30"
+                isActive ? "bg-accent-bg" : isDone ? "bg-transparent" : "opacity-30"
               }`}
             >
               {/* Status indicator */}
               <div className="flex-shrink-0 mt-0.5">
                 {isDone ? (
-                  <span className="text-term-green font-mono text-xs">&#10003;</span>
+                  <span className="text-accent font-mono text-xs">&#10003;</span>
                 ) : isActive ? (
-                  <span className="inline-block h-2 w-2 rounded-full bg-term-green animate-pulse-dot mt-1" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-accent animate-pulse-dot mt-1" />
                 ) : (
                   <span className="text-bb-gray-500 font-mono text-xs">{step.step}</span>
                 )}
@@ -445,7 +445,7 @@ function RetrievalPlan({ steps, activeStep, completed }) {
                   {icon && (
                     <svg
                       className={`h-3.5 w-3.5 flex-shrink-0 ${
-                        isDone ? "text-term-dim" : isActive ? "text-term-green" : "text-bb-gray-500"
+                        isDone ? "text-accent-dim" : isActive ? "text-accent" : "text-bb-gray-500"
                       }`}
                       fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
                     >
@@ -453,7 +453,7 @@ function RetrievalPlan({ steps, activeStep, completed }) {
                     </svg>
                   )}
                   <span className={`text-xs font-mono ${
-                    isDone ? "text-bb-gray-300" : isActive ? "text-term-green" : "text-bb-gray-500"
+                    isDone ? "text-bb-gray-300" : isActive ? "text-accent" : "text-bb-gray-500"
                   }`}>
                     {step.name}
                   </span>
@@ -524,8 +524,8 @@ function RetrievalPlan({ steps, activeStep, completed }) {
 function TerminalSpinner() {
   return (
     <div className="flex items-center gap-3 py-8 px-4">
-      <span className="inline-block h-2 w-2 rounded-full bg-term-green animate-pulse-dot" />
-      <span className="text-sm font-mono text-term-green">Classifying query...</span>
+      <span className="inline-block h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
+      <span className="text-sm font-mono text-accent">Classifying query...</span>
     </div>
   );
 }
@@ -547,7 +547,7 @@ function AnswerSkeleton() {
       {/* Answer card skeleton */}
       <div className="bb-panel-inset rounded bg-bb-panel p-4">
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-bb-border">
-          <div className="w-1 h-4 bg-term-green/30 rounded-full" />
+          <div className="w-1 h-4 bg-accent/30 rounded-full" />
           <div className={`h-4 w-20 rounded ${shimmerClass}`} />
         </div>
 
@@ -805,7 +805,7 @@ function AnswerBlock({ answer, sources }) {
             const isUp = INCREASE_RE.test(block.text) && !DECREASE_RE.test(block.text);
             const isDown = DECREASE_RE.test(block.text) && !INCREASE_RE.test(block.text);
             const depth = block.depth || 0;
-            const dotColor = isUp ? "bg-term-green" : isDown ? "bg-bb_red" : "bg-term-green";
+            const dotColor = isUp ? "bg-accent" : isDown ? "bg-bb_red" : "bg-accent";
             const dotSize = depth === 0 ? "h-1 w-1 rounded-full" : "h-1 w-1 rounded-sm";
             const textOpacity = depth === 0 ? "" : "opacity-85";
             return (
@@ -866,8 +866,8 @@ function AnswerBlock({ answer, sources }) {
 /* ------------------------------------------------------------------ */
 const SIGNAL_META = {
   retrieval_quality: { label: "SRC AUTH", color: "bg-bb_blue" },
-  source_coverage: { label: "COVERAGE", color: "bg-term-green" },
-  cross_source_agreement: { label: "AGREEMENT", color: "bg-term-green" },
+  source_coverage: { label: "COVERAGE", color: "bg-accent" },
+  cross_source_agreement: { label: "AGREEMENT", color: "bg-accent" },
   citation_density: { label: "CITATION", color: "bg-amber" },
   data_recency: { label: "RECENCY", color: "bg-bb_blue" },
 };
@@ -877,7 +877,7 @@ function ConfidenceBreakdown({ confidence }) {
 
   const { overall_score, tier_label, tier_color, tier_description, signals } = confidence;
   const scoreColor =
-    tier_color === "green" ? "text-term-green" : tier_color === "yellow" ? "text-amber" : "text-bb_red";
+    tier_color === "green" ? "text-accent" : tier_color === "yellow" ? "text-amber" : "text-bb_red";
   return (
     <div className="bb-panel-inset rounded bg-bb-panel p-4">
       <div className="flex items-center justify-between mb-3">
@@ -885,7 +885,7 @@ function ConfidenceBreakdown({ confidence }) {
           Confidence
         </span>
         <span className={`rounded px-2 py-0.5 text-xs font-mono font-bold border ${
-          tier_color === "green" ? "bg-term-bg text-term-green border-term-green/30" :
+          tier_color === "green" ? "bg-accent-bg text-accent border-accent/30" :
           tier_color === "yellow" ? "bg-amber-bg text-amber border-amber/30" :
           "bg-bb_red-bg text-bb_red border-bb_red/30"
         }`}>
@@ -909,7 +909,7 @@ function ConfidenceBreakdown({ confidence }) {
         {Object.entries(signals).map(([key, signal]) => {
           const meta = SIGNAL_META[key] || { label: key.toUpperCase(), color: "bg-bb-gray-400" };
           const score = signal.score;
-          const barColor = score >= 80 ? "bg-term-green" : score >= 50 ? "bg-amber" : "bg-bb_red";
+          const barColor = score >= 80 ? "bg-accent" : score >= 50 ? "bg-amber" : "bg-bb_red";
 
           return (
             <div key={key} className="flex items-center gap-2.5">
@@ -921,7 +921,7 @@ function ConfidenceBreakdown({ confidence }) {
                 />
               </div>
               <span className={`text-xs font-mono font-semibold tabular-nums w-7 text-right flex-shrink-0 ${
-                score >= 80 ? "text-term-green" : score >= 50 ? "text-amber" : "text-bb_red"
+                score >= 80 ? "text-accent" : score >= 50 ? "text-amber" : "text-bb_red"
               }`}>
                 {Math.round(score)}
               </span>
@@ -941,8 +941,8 @@ const PHASE_COLORS = {
   decompose: { bar: "bg-violet-500", dot: "bg-violet-400", label: "Decompose" },
   embed:     { bar: "bg-cyan-500", dot: "bg-cyan-400", label: "Embed" },
   generate:  { bar: "bg-amber", dot: "bg-amber", label: "Generate" },
-  full_query:{ bar: "bg-term-green", dot: "bg-term-green", label: "Full Query" },
-  retrieve:  { bar: "bg-term-green", dot: "bg-term-green", label: "Retrieve" },
+  full_query:{ bar: "bg-accent", dot: "bg-accent", label: "Full Query" },
+  retrieve:  { bar: "bg-accent", dot: "bg-accent", label: "Retrieve" },
 };
 
 function formatCost(cost) {
@@ -966,9 +966,9 @@ function CostBreakdown({ cost }) {
   const totalPhaseCost = costPhases.reduce((s, p) => s + p.cost, 0) || 1;
 
   const gradeColor = grade === "S" || grade === "A+" || grade === "A"
-    ? "text-term-green" : grade === "B" ? "text-amber" : "text-bb_red";
+    ? "text-accent" : grade === "B" ? "text-amber" : "text-bb_red";
   const gradeBg = grade === "S" || grade === "A+" || grade === "A"
-    ? "bg-term-bg border-term-green/30" : grade === "B"
+    ? "bg-accent-bg border-accent/30" : grade === "B"
     ? "bg-amber-bg border-amber/30" : "bg-bb_red-bg border-bb_red/30";
 
   return (
@@ -1018,13 +1018,13 @@ function CostBreakdown({ cost }) {
                 <div key={i}>
                   <div className="flex items-center justify-between mb-0.5">
                     <div className="flex items-center gap-1.5">
-                      <span className={`inline-block h-2 w-2 rounded-full ${p.cached ? "bg-term-green" : phaseStyle.dot}`} />
+                      <span className={`inline-block h-2 w-2 rounded-full ${p.cached ? "bg-accent" : phaseStyle.dot}`} />
                       <span className="text-xs font-mono text-bb-gray-200 font-medium">
                         {phaseStyle.label}
                       </span>
                     </div>
                     {p.cached ? (
-                      <span className="text-[10px] font-mono font-bold text-term-green tracking-wider">CACHED</span>
+                      <span className="text-[10px] font-mono font-bold text-accent tracking-wider">CACHED</span>
                     ) : (
                       <span className="text-xs font-mono tabular-nums">
                         <span className="text-white font-semibold">{formatCost(p.cost)}</span>
@@ -1048,11 +1048,11 @@ function CostBreakdown({ cost }) {
 
       {/* Cached state */}
       {allCached && (
-        <div className="flex items-center gap-2 mb-3 rounded bg-term-bg/50 border border-term-green/20 px-3 py-2.5">
-          <svg className="h-4 w-4 text-term-green flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+        <div className="flex items-center gap-2 mb-3 rounded bg-accent-bg/50 border border-accent/20 px-3 py-2.5">
+          <svg className="h-4 w-4 text-accent flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
           </svg>
-          <span className="text-xs font-mono text-term-green font-medium">
+          <span className="text-xs font-mono text-accent font-medium">
             Instant — served from cache
           </span>
         </div>
@@ -1104,7 +1104,7 @@ function parseSource(src) {
 
 const FILING_TYPE_COLORS = {
   "10-K": { dot: "bg-bb_blue", badge: "bg-bb_blue-bg text-bb_blue-bright border-bb_blue/30" },
-  "10-Q": { dot: "bg-term-green", badge: "bg-term-bg text-term-green border-term-green/30" },
+  "10-Q": { dot: "bg-accent", badge: "bg-accent-bg text-accent border-accent/30" },
 };
 
 /* ------------------------------------------------------------------ */
@@ -1199,7 +1199,7 @@ function DocumentTimeline({ sources }) {
 function ResultMetadataStrip() {
   return (
     <div className="flex items-center gap-2 text-xs font-mono">
-      <span className="font-semibold text-term-green tracking-wide">SEC Filing Intelligence System</span>
+      <span className="font-semibold text-accent tracking-wide">SEC Filing Intelligence System</span>
     </div>
   );
 }
@@ -1303,64 +1303,78 @@ function LandingPage() {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center py-10 text-center max-w-3xl mx-auto">
+    <div className="flex flex-col items-center justify-center py-12 text-center max-w-4xl mx-auto">
       {/* Animated title */}
-      <h1 className="font-mono font-bold text-3xl text-term-green animate-glow-pulse tracking-wide h-10">
+      <h1 className="font-sans font-bold text-4xl text-bb-gray-100 tracking-tight h-12">
         {displayed}
-        {!done && <span className="animate-blink">_</span>}
+        {!done && <span className="animate-blink text-accent">|</span>}
       </h1>
 
       {/* Subtitle */}
-      <p className="mt-5 text-base font-mono text-bb-gray-300 leading-relaxed animate-fade-up" style={{ animationDelay: "2s" }}>
+      <p className="mt-4 text-base font-sans text-bb-gray-400 leading-relaxed max-w-2xl animate-fade-up" style={{ animationDelay: "2s" }}>
         AI-powered retrieval over official SEC EDGAR filings.
         Structured XBRL data and vector search across 10-K and 10-Q documents &mdash;
         answered in seconds with full source attribution.
       </p>
 
+      {/* Coverage pills */}
+      <div className="mt-6 flex items-center gap-2 flex-wrap justify-center animate-fade-up" style={{ animationDelay: "2.3s" }}>
+        {TICKERS.map((t) => (
+          <span key={t} className="rounded-full bg-bb-surface border border-bb-border px-2.5 py-1 text-xs font-mono font-medium text-bb-gray-300">
+            {t}
+          </span>
+        ))}
+        <span className="rounded-full bg-bb-surface border border-bb-border px-2.5 py-1 text-xs font-mono text-bb-gray-500">
+          2010&ndash;2026
+        </span>
+      </div>
+
       {/* Animated stats bar */}
       <div className="mt-8 w-full grid grid-cols-4 gap-3 animate-fade-up" style={{ animationDelay: "2.5s" }}>
         {STATS.map((s) => (
-          <div key={s.label} className="rounded border border-bb-border bg-bb-surface px-3 py-4 animate-count-border" style={{ animationDelay: "3s" }}>
-            <div className="text-xl font-mono font-bold text-term-green text-glow-green tabular-nums">
+          <div key={s.label} className="rounded-lg border border-bb-border bg-bb-surface px-3 py-4 animate-count-border" style={{ animationDelay: "3s" }}>
+            <div className="text-xl font-mono font-bold text-accent text-glow-teal tabular-nums">
               <AnimatedNumber value={s.value} duration={2000} />{s.suffix}
             </div>
-            <div className="mt-1 text-sm font-mono text-bb-gray-400">{s.label}</div>
+            <div className="mt-1 text-sm font-sans text-bb-gray-400">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Feature cards */}
-      <div className="mt-8 grid grid-cols-3 gap-2.5 w-full text-left animate-fade-up" style={{ animationDelay: "3s" }}>
+      <div className="mt-8 grid grid-cols-3 gap-3 w-full text-left animate-fade-up" style={{ animationDelay: "3s" }}>
         {FEATURES.map((c, i) => (
           <div
             key={c.label}
-            className="group rounded border border-bb-border bg-bb-surface px-3 py-2.5 transition-all duration-300 hover:border-term-green/30 hover:bg-bb-hover"
+            className="group rounded-lg border border-bb-border bg-bb-surface px-4 py-3 transition-all duration-300 hover:border-accent/30 hover:bg-bb-hover"
             style={{ animationDelay: `${3.2 + i * 0.1}s` }}
           >
-            <div className="flex items-center gap-1.5">
-              <svg className="h-3.5 w-3.5 text-term-green opacity-70 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                {c.icon}
-              </svg>
-              <span className="text-xs font-mono font-semibold text-term-green">{c.label}</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center h-7 w-7 rounded-md bg-accent/10 text-accent">
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  {c.icon}
+                </svg>
+              </div>
+              <span className="text-xs font-sans font-semibold text-bb-gray-200">{c.label}</span>
             </div>
-            <p className="mt-1 text-xs font-mono text-bb-gray-400 leading-relaxed">{c.desc}</p>
+            <p className="mt-2 text-xs font-sans text-bb-gray-400 leading-relaxed">{c.desc}</p>
           </div>
         ))}
       </div>
 
       {/* Fiscal year note */}
-      <div className="mt-8 w-full flex items-center gap-2.5 rounded border border-amber/20 bg-amber-bg/30 px-4 py-3 animate-fade-up" style={{ animationDelay: "3.5s" }}>
+      <div className="mt-8 w-full flex items-center gap-2.5 rounded-lg border border-amber/20 bg-amber-bg/30 px-4 py-3 animate-fade-up" style={{ animationDelay: "3.5s" }}>
         <svg className="h-4 w-4 flex-shrink-0 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span className="text-sm font-mono text-amber/80 leading-relaxed">
+        <span className="text-sm font-sans text-amber/80 leading-relaxed">
           All dates reference fiscal years, which may differ from calendar years.
           For example, NVIDIA's FY2023 runs Feb 2022 &ndash; Jan 2023.
         </span>
       </div>
 
       {/* Developer attribution */}
-      <p className="mt-4 text-xs font-mono text-bb-gray-500 animate-fade-up" style={{ animationDelay: "3.8s" }}>
+      <p className="mt-4 text-xs font-sans text-bb-gray-500 animate-fade-up" style={{ animationDelay: "3.8s" }}>
         Developed by Subal Bhattarai
       </p>
 
@@ -1379,7 +1393,7 @@ function LandingPage() {
         {/* Data ingestion pipeline */}
         <Reveal delay={100}>
           <div className="rounded border border-bb-border bg-bb-surface p-5 mb-5">
-            <h3 className="text-base font-mono font-semibold text-term-green mb-3">Data Ingestion Pipeline</h3>
+            <h3 className="text-base font-mono font-semibold text-accent mb-3">Data Ingestion Pipeline</h3>
             <p className="text-sm font-mono text-bb-gray-300 leading-relaxed mb-4">
               SEC EDGAR filings are fetched, parsed, and stored across multiple specialized tables.
               A single EDGAR fetch per filing feeds all downstream processors to avoid duplicate requests.
@@ -1388,13 +1402,13 @@ function LandingPage() {
             {/* Ingestion flow: Fetch → fan-out → Chunk & Embed */}
             {(() => {
               const StepBox = ({ s, className: cx }) => (
-                <div className={`rounded border border-term-green/30 bg-bb-panel px-3 py-2 text-center ${cx || ""}`}>
+                <div className={`rounded border border-accent/30 bg-bb-panel px-3 py-2 text-center ${cx || ""}`}>
                   <div className={`text-xs font-mono font-bold ${s.color}`}>{s.step}</div>
                   <div className="text-[10px] font-mono text-bb-gray-500 mt-0.5">{s.detail}</div>
                 </div>
               );
               const HArrow = ({ direction }) => (
-                <svg className="h-3 w-4 text-term-green/50 flex-shrink-0" fill="none" viewBox="0 0 16 12" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="h-3 w-4 text-accent/50 flex-shrink-0" fill="none" viewBox="0 0 16 12" stroke="currentColor" strokeWidth={1.5}>
                   {direction === "left" ? (
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 6H3m0 0l3-3M3 6l3 3" />
                   ) : (
@@ -1403,7 +1417,7 @@ function LandingPage() {
                 </svg>
               );
               const VArrow = () => (
-                <svg className="h-4 w-3 text-term-green/50" fill="none" viewBox="0 0 12 16" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="h-4 w-3 text-accent/50" fill="none" viewBox="0 0 12 16" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 1v12m0 0l-3-3m3 3l3-3" />
                 </svg>
               );
@@ -1412,14 +1426,14 @@ function LandingPage() {
                   {/* Row 1: Fetch → fan-out */}
                   <div className="flex items-center gap-0">
                     <div className="flex-1 min-w-0">
-                      <StepBox s={{ step: "Fetch", detail: "SEC EDGAR filings", color: "text-term-green" }} className="flex-1" />
+                      <StepBox s={{ step: "Fetch", detail: "SEC EDGAR filings", color: "text-accent" }} className="flex-1" />
                     </div>
                     <HArrow direction="right" />
                     <div className="flex-[3] min-w-0 rounded border border-bb-border/30 bg-bb-panel/30 px-2 py-1.5">
                       <div className="text-[10px] font-mono text-bb-gray-500 text-center mb-1.5">parallel per filing</div>
                       <div className="grid grid-cols-3 gap-1.5">
                         {/* XBRL — goes straight to DB */}
-                        <div className="rounded border border-term-green/30 bg-bb-panel px-2 py-1.5 text-center">
+                        <div className="rounded border border-accent/30 bg-bb-panel px-2 py-1.5 text-center">
                           <div className="text-[10px] font-mono font-bold text-bb_blue-bright">Parse XBRL</div>
                           <div className="text-[9px] font-mono text-bb-gray-500 mt-0.5">Facts → PostgreSQL</div>
                         </div>
@@ -1429,7 +1443,7 @@ function LandingPage() {
                           <div className="text-[9px] font-mono text-bb-gray-500 mt-0.5">Risk Factors, MD&A</div>
                         </div>
                         {/* Statements — goes straight to DB */}
-                        <div className="rounded border border-term-green/30 bg-bb-panel px-2 py-1.5 text-center">
+                        <div className="rounded border border-accent/30 bg-bb-panel px-2 py-1.5 text-center">
                           <div className="text-[10px] font-mono font-bold text-bb_blue-bright">Statements</div>
                           <div className="text-[9px] font-mono text-bb-gray-500 mt-0.5">Markdown → PostgreSQL</div>
                         </div>
@@ -1460,7 +1474,7 @@ function LandingPage() {
             {/* Ingestion details: two-column */}
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded border border-bb-border/50 bg-bb-panel px-4 py-3">
-                <div className="text-xs font-mono font-semibold text-term-green mb-2 uppercase tracking-wider">Structured Data</div>
+                <div className="text-xs font-mono font-semibold text-accent mb-2 uppercase tracking-wider">Structured Data</div>
                 <ul className="space-y-1.5">
                   {[
                     "XBRL facts parsed into annual_facts and quarterly_facts tables",
@@ -1497,7 +1511,7 @@ function LandingPage() {
         {/* RAG Pipeline */}
         <Reveal delay={150}>
           <div className="rounded border border-bb-border bg-bb-surface p-5 mb-5">
-            <h3 className="text-base font-mono font-semibold text-term-green mb-3">RAG Pipeline</h3>
+            <h3 className="text-base font-mono font-semibold text-accent mb-3">RAG Pipeline</h3>
             <p className="text-sm font-mono text-bb-gray-300 leading-relaxed mb-4">
               Each query is classified, decomposed into sub-queries, routed through up to 5 retrieval
               strategies (XBRL lookup, timeseries, vector search, hybrid fusion, full statements), then
@@ -1508,20 +1522,20 @@ function LandingPage() {
             {/* Pipeline flow: 2 rows of 4, connected horizontally + vertically */}
             {(() => {
               const ROW1 = [
-                { step: "Input", detail: "Query + validation", color: "text-term-green" },
-                { step: "Classify", detail: "Route, tickers, years", color: "text-term-green" },
+                { step: "Input", detail: "Query + validation", color: "text-accent" },
+                { step: "Classify", detail: "Route, tickers, years", color: "text-accent" },
                 { step: "Availability", detail: "FY mapping, IPO checks", color: "text-amber" },
-                { step: "Decompose", detail: "Sub-query split", color: "text-term-green" },
+                { step: "Decompose", detail: "Sub-query split", color: "text-accent" },
               ];
               /* Row 2 is reversed: Retrieve is on the right (under Decompose), flows left to Output */
               const ROW2 = [
-                { step: "Output", detail: "Citations, confidence", color: "text-term-green" },
-                { step: "Generate", detail: "LLM + grounded context", color: "text-term-green" },
+                { step: "Output", detail: "Citations, confidence", color: "text-accent" },
+                { step: "Generate", detail: "LLM + grounded context", color: "text-accent" },
                 { step: "Guardrails", detail: "Filter, contradiction", color: "text-amber" },
                 { step: "Retrieve", detail: "5-route data fetch + rerank", color: "text-bb_blue-bright" },
               ];
               const HArrow = ({ direction }) => (
-                <svg className="h-3 w-4 text-term-green/50 flex-shrink-0" fill="none" viewBox="0 0 16 12" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="h-3 w-4 text-accent/50 flex-shrink-0" fill="none" viewBox="0 0 16 12" stroke="currentColor" strokeWidth={1.5}>
                   {direction === "left" ? (
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 6H3m0 0l3-3M3 6l3 3" />
                   ) : (
@@ -1530,12 +1544,12 @@ function LandingPage() {
                 </svg>
               );
               const VArrow = () => (
-                <svg className="h-4 w-3 text-term-green/50" fill="none" viewBox="0 0 12 16" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="h-4 w-3 text-accent/50" fill="none" viewBox="0 0 12 16" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 1v12m0 0l-3-3m3 3l3-3" />
                 </svg>
               );
               const StepBox = ({ s }) => (
-                <div className="rounded border border-term-green/30 bg-bb-panel px-3 py-2 text-center flex-1 min-w-0">
+                <div className="rounded border border-accent/30 bg-bb-panel px-3 py-2 text-center flex-1 min-w-0">
                   <div className={`text-xs font-mono font-bold ${s.color}`}>{s.step}</div>
                   <div className="text-[10px] font-mono text-bb-gray-500 mt-0.5">{s.detail}</div>
                 </div>
@@ -1572,7 +1586,7 @@ function LandingPage() {
             <div className="mt-4 grid grid-cols-2 gap-4">
               {/* Left column — Classification & Planning */}
               <div className="rounded border border-bb-border/50 bg-bb-panel px-4 py-3">
-                <div className="text-xs font-mono font-semibold text-term-green mb-2 uppercase tracking-wider">Classification &amp; Planning</div>
+                <div className="text-xs font-mono font-semibold text-accent mb-2 uppercase tracking-wider">Classification &amp; Planning</div>
                 <ul className="space-y-1.5">
                   {[
                     "LLM intent detection (route, query type, tickers, years)",
@@ -1582,7 +1596,7 @@ function LandingPage() {
                     "Multi-company decomposition (per-ticker sub-query split)",
                   ].map((text, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-term-green/70 flex-shrink-0" />
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent/70 flex-shrink-0" />
                       <span className="text-xs font-mono text-bb-gray-400 leading-relaxed">{text}</span>
                     </li>
                   ))}
@@ -1614,7 +1628,7 @@ function LandingPage() {
         {/* Data layer */}
         <Reveal delay={150}>
           <div className="rounded border border-bb-border bg-bb-surface p-5 mb-5">
-            <h3 className="text-base font-mono font-semibold text-term-green mb-4">Data Layer</h3>
+            <h3 className="text-base font-mono font-semibold text-accent mb-4">Data Layer</h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded border border-bb-border/50 bg-bb-panel px-4 py-3">
                 <div className="flex items-center gap-2 mb-2">
@@ -1644,10 +1658,10 @@ function LandingPage() {
               </div>
               <div className="rounded border border-bb-border/50 bg-bb-panel px-4 py-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <svg className="h-4 w-4 text-term-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5" />
                   </svg>
-                  <span className="text-sm font-mono font-semibold text-term-green">Financial Statements</span>
+                  <span className="text-sm font-mono font-semibold text-accent">Financial Statements</span>
                 </div>
                 <p className="text-sm font-mono text-bb-gray-400 leading-relaxed">
                   Full income statements, balance sheets, and cash flow statements
@@ -1662,7 +1676,7 @@ function LandingPage() {
         {/* Retrieval routes */}
         <Reveal delay={150}>
           <div className="rounded border border-bb-border bg-bb-surface p-5 mb-5">
-            <h3 className="text-base font-mono font-semibold text-term-green mb-3">Retrieval Routes</h3>
+            <h3 className="text-base font-mono font-semibold text-accent mb-3">Retrieval Routes</h3>
             <p className="text-sm font-mono text-bb-gray-300 leading-relaxed mb-4">
               The query classifier analyzes each question and selects the optimal retrieval strategy.
               Five routes cover the full spectrum from precise metric lookups to open-ended narrative analysis.
@@ -1671,7 +1685,7 @@ function LandingPage() {
               {[
                 { route: "metric_lookup", color: "text-bb_blue-bright", border: "border-bb_blue/20",
                   label: "Metric Lookup", desc: "Exact XBRL fact retrieval for specific financial metrics. Queries annual_facts and quarterly_facts tables directly for highest precision." },
-                { route: "timeseries", color: "text-term-green", border: "border-term-green/20",
+                { route: "timeseries", color: "text-accent", border: "border-accent/20",
                   label: "Timeseries", desc: "Multi-year trend retrieval with automatic YoY growth calculations, period-over-period changes, CAGR computation, and trend direction." },
                 { route: "narrative", color: "text-amber", border: "border-amber/20",
                   label: "Narrative Search", desc: "Semantic vector search over embedded filing sections (MD&A, Risk Factors). Cosine similarity finds candidates, cross-encoder reranks for relevance." },
@@ -1694,7 +1708,7 @@ function LandingPage() {
         {/* Quality assurance */}
         <Reveal delay={150}>
           <div className="rounded border border-bb-border bg-bb-surface p-5 mb-5">
-            <h3 className="text-base font-mono font-semibold text-term-green mb-4">Quality Assurance</h3>
+            <h3 className="text-base font-mono font-semibold text-accent mb-4">Quality Assurance</h3>
             <p className="text-sm font-mono text-bb-gray-300 leading-relaxed mb-4">
               Config-driven guardrails ensure every answer is grounded, validated, and scored
               before reaching the user. All thresholds and weights are tunable
@@ -1704,7 +1718,7 @@ function LandingPage() {
               <Reveal delay={0}>
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="h-2 w-2 rounded-full bg-term-green" />
+                    <div className="h-2 w-2 rounded-full bg-accent" />
                     <span className="text-sm font-mono font-semibold text-bb-gray-200">Retrieval Guardrails</span>
                   </div>
                   <p className="text-sm font-mono text-bb-gray-400 leading-relaxed pl-4">
@@ -1763,7 +1777,7 @@ function LandingPage() {
         {/* Tech stack */}
         <Reveal delay={150}>
           <div className="rounded border border-bb-border bg-bb-surface p-5">
-            <h3 className="text-base font-mono font-semibold text-term-green mb-4">Tech Stack</h3>
+            <h3 className="text-base font-mono font-semibold text-accent mb-4">Tech Stack</h3>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: "LLM", value: "GPT-4o" },
@@ -1970,145 +1984,104 @@ function App() {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-bb-black text-bb-gray-200 font-sans">
       {/* ==================== HEADER BAR ==================== */}
-      <header className="flex-shrink-0 h-10 flex items-center justify-between px-4 bg-bb-panel border-b border-bb-border">
+      <header className="flex-shrink-0 h-11 flex items-center justify-between px-5 bg-bb-panel border-b border-bb-border">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-mono font-semibold text-term-green tracking-wide">SEC Filing Intelligence System</span>
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span className="text-sm font-sans font-semibold text-bb-gray-100 tracking-tight">SEC Filing Intelligence</span>
+          </div>
           {classification && loading && (
-            <span className="text-xxs font-mono text-amber animate-pulse">
-              PROCESSING: {classification.route_name || classification.route}
+            <span className="text-xxs font-mono text-accent animate-pulse ml-2 px-2 py-0.5 rounded-full bg-accent-bg border border-accent/20">
+              {classification.route_name || classification.route}
             </span>
           )}
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-xxs font-mono text-bb-gray-400">
+          <div className="hidden md:flex items-center gap-1.5">
+            {["10-K", "10-Q"].map((t) => (
+              <span key={t} className="text-xxs font-mono text-bb-gray-400 bg-bb-surface rounded px-1.5 py-0.5 border border-bb-border">{t}</span>
+            ))}
+          </div>
+          <span className="text-xxs font-mono text-bb-gray-500">
             {currentTime.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}
           </span>
-          <span className="text-xxs font-mono text-term-green tabular-nums">
+          <span className="text-xxs font-mono text-accent tabular-nums">
             {currentTime.toLocaleTimeString("en-US", { hour12: false })}
           </span>
         </div>
       </header>
 
-      {/* ==================== MAIN BODY ==================== */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* ==================== LEFT SIDEBAR ==================== */}
-        <aside className="hidden lg:flex flex-col w-64 flex-shrink-0 border-r border-bb-border bg-bb-panel overflow-y-auto">
-          {/* Scope — Tickers */}
-          <div className="p-3 border-b border-bb-border">
-            <label className="text-xxs font-mono font-semibold uppercase tracking-widest text-bb-gray-400 mb-2 block">
-              Coverage &mdash; Tickers
-            </label>
-            <div className="flex flex-wrap gap-1">
-              {TICKERS.map((t) => (
-                <span
-                  key={t}
-                  className="rounded bg-bb-surface border border-bb-border px-2 py-1 text-xs font-mono font-semibold text-term-green"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Scope — Years */}
-          <div className="p-3 border-b border-bb-border">
-            <label className="text-xxs font-mono font-semibold uppercase tracking-widest text-bb-gray-400 mb-1.5 block">
-              Coverage &mdash; Years
-            </label>
-            <span className="text-xs font-mono text-bb-gray-200">2010 &ndash; 2026</span>
-          </div>
-
-          {/* Scope — Filing Types */}
-          <div className="p-3 border-b border-bb-border">
-            <label className="text-xxs font-mono font-semibold uppercase tracking-widest text-bb-gray-400 mb-2 block">
-              Filing Types
-            </label>
-            <div className="flex gap-1.5">
-              <span className="rounded bg-bb_blue-bg border border-bb_blue/30 px-2 py-1 text-xs font-mono font-semibold text-bb_blue-bright">
-                10-K
-              </span>
-              <span className="rounded bg-term-bg border border-term-green/30 px-2 py-1 text-xs font-mono font-semibold text-term-green">
-                10-Q
-              </span>
-            </div>
-          </div>
-
-          {/* Query Input */}
-          <div className="p-3 border-b border-bb-border flex-shrink-0">
-            <label className="text-xxs font-mono font-semibold uppercase tracking-widest text-bb-gray-400 mb-2 block">
-              Query
-            </label>
-            <textarea
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Enter query..."
-              disabled={loading}
-              rows={8}
-              className="w-full rounded bg-bb-surface border border-bb-border px-2 py-1.5 text-xs font-mono text-bb-gray-100 placeholder-bb-gray-500 outline-none focus:border-term-green/50 resize-none"
-            />
-            <button
-              onClick={() => handleSearch()}
-              disabled={loading || !query.trim()}
-              className="mt-2 w-full rounded bg-term-green/10 border border-term-green/30 px-4 py-3 text-sm font-mono font-bold text-term-green transition hover:bg-term-green/20 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              {loading ? "EXECUTING..." : "EXECUTE QUERY"}
-            </button>
-          </div>
-
-          {/* Example Queries */}
-          <div className="p-3 flex-1 overflow-y-auto">
-            <label className="text-xxs font-mono font-semibold uppercase tracking-widest text-bb-gray-400 mb-2 block">
-              Examples
-            </label>
-            <div className="space-y-1">
-              {EXAMPLE_QUERIES.map((eq) => (
-                <button
-                  key={eq}
-                  onClick={() => handleExample(eq)}
-                  disabled={loading}
-                  className="w-full text-left rounded px-2 py-1.5 text-xxs font-mono text-bb-gray-300 bb-row-hover disabled:opacity-30"
-                >
-                  <span className="text-term-dim mr-1">&gt;</span>{eq}
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* ==================== MAIN CONTENT ==================== */}
-        <main className="flex-1 overflow-y-auto">
-          {/* Mobile query bar (when sidebars hidden) */}
-          <div className="lg:hidden p-3 border-b border-bb-border bg-bb-panel">
-            <div className="flex gap-2">
-              <input
-                type="text"
+      {/* ==================== QUERY BAR ==================== */}
+      <div className="flex-shrink-0 bg-bb-panel/50 border-b border-bb-border">
+        <div className="max-w-5xl mx-auto px-5 py-4">
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 relative">
+              <textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Enter query..."
+                placeholder="Ask about SEC filings — revenue, risk factors, financial statements..."
                 disabled={loading}
-                className="flex-1 rounded bg-bb-surface border border-bb-border px-3 py-2 text-xs font-mono text-bb-gray-100 placeholder-bb-gray-500 outline-none focus:border-term-green/50"
+                rows={2}
+                className="w-full rounded-lg bg-bb-surface border border-bb-border px-4 py-3 text-sm font-sans text-bb-gray-100 placeholder-bb-gray-500 outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 resize-none transition-all"
               />
-              <button
-                onClick={() => handleSearch()}
-                disabled={loading || !query.trim()}
-                className="rounded bg-term-green/10 border border-term-green/30 px-4 py-2 text-xs font-mono font-bold text-term-green disabled:opacity-30"
-              >
-                {loading ? "..." : "GO"}
-              </button>
+              <div className="absolute right-3 bottom-2.5 flex items-center gap-1.5 text-xxs font-mono text-bb-gray-500">
+                <kbd className="rounded border border-bb-border bg-bb-black/50 px-1 py-0.5 text-[10px]">Enter</kbd>
+                <span>to search</span>
+              </div>
             </div>
+            <button
+              onClick={() => handleSearch()}
+              disabled={loading || !query.trim()}
+              className="rounded-lg bg-accent px-5 py-3 text-sm font-sans font-semibold text-bb-black transition hover:bg-accent-bright disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-bb-black/30 border-t-bb-black animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Search
+                </>
+              )}
+            </button>
           </div>
+          {/* Example queries row */}
+          <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+            <span className="text-xxs font-mono text-bb-gray-500">Try:</span>
+            {EXAMPLE_QUERIES.map((eq) => (
+              <button
+                key={eq}
+                onClick={() => handleExample(eq)}
+                disabled={loading}
+                className="rounded-full border border-bb-border bg-bb-surface/50 px-2.5 py-1 text-xxs font-mono text-bb-gray-400 transition hover:border-accent/30 hover:text-bb-gray-200 hover:bg-bb-hover disabled:opacity-30"
+              >
+                {eq}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-          <div className="p-4 space-y-4">
+      {/* ==================== MAIN BODY ==================== */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ==================== MAIN CONTENT ==================== */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto p-5 space-y-4">
             {/* Initial loading spinner */}
             {loading && !classification && <TerminalSpinner />}
 
             {/* Classification badge */}
             {classification && !result && (
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded bg-bb_blue-bg px-2 py-1 text-xxs font-mono font-semibold text-bb_blue-bright border border-bb_blue/20">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-bb_blue-bg px-3 py-1 text-xxs font-mono font-semibold text-bb_blue-bright border border-bb_blue/20">
                   {classification.route_name}
                 </span>
                 <span className="text-xxs font-mono text-bb-gray-400">{classification.reasoning}</span>
@@ -2125,7 +2098,7 @@ function App() {
 
             {/* Error */}
             {error && (
-              <div className="rounded border border-bb_red/30 bg-bb_red-bg px-4 py-3 text-xs font-mono text-bb_red">
+              <div className="rounded-lg border border-bb_red/30 bg-bb_red-bg px-4 py-3 text-xs font-mono text-bb_red">
                 <span className="font-bold mr-2">ERROR:</span>{error}
               </div>
             )}
@@ -2149,50 +2122,79 @@ function App() {
                   </details>
                 )}
 
-                {/* Answer card */}
-                <div className="bb-panel-inset rounded bg-bb-panel p-4">
-                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-bb-border">
-                    <div className="w-1 h-4 bg-term-green rounded-full" />
-                    <h2 className="text-xs font-mono font-semibold uppercase tracking-widest text-amber">
-                      Analysis
-                    </h2>
-                  </div>
-                  <AnswerBlock answer={cleanAnswer(result.answer || (typeof result.data === "string" ? result.data : null))} sources={result.sources} />
+                {/* Answer + Sources side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-4">
+                  {/* Answer card */}
+                  <div className="bb-panel-inset rounded-lg bg-bb-panel p-5">
+                    <div className="flex items-center gap-2 mb-4 pb-2.5 border-b border-bb-border">
+                      <div className="w-1 h-4 bg-accent rounded-full" />
+                      <h2 className="text-xs font-mono font-semibold uppercase tracking-widest text-bb-gray-300">
+                        Analysis
+                      </h2>
+                      {result.confidence && (
+                        <span className={`ml-auto rounded-full px-2.5 py-0.5 text-xxs font-mono font-bold border ${
+                          result.confidence.tier_color === "green" ? "bg-accent-bg text-accent border-accent/30" :
+                          result.confidence.tier_color === "yellow" ? "bg-amber-bg text-amber border-amber/30" :
+                          "bg-bb_red-bg text-bb_red border-bb_red/30"
+                        }`}>
+                          {Math.round(result.confidence.overall_score)}/100
+                        </span>
+                      )}
+                    </div>
+                    <AnswerBlock answer={cleanAnswer(result.answer || (typeof result.data === "string" ? result.data : null))} sources={result.sources} />
 
-                  {Array.isArray(result.data) && result.data.length > 0 && (
-                    <div className="mt-4 overflow-x-auto rounded border border-bb-border">
-                      <table className="w-full text-left text-xs font-mono">
-                        <thead>
-                          <tr className="border-b border-bb-border bg-bb-surface">
-                            {Object.keys(result.data[0]).map((key) => (
-                              <th key={key} className="px-3 py-2 text-xxs font-semibold uppercase tracking-wider text-amber">{key}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {result.data.map((row, i) => (
-                            <tr key={i} className="border-b border-bb-border/50 bb-row-hover">
-                              {Object.values(row).map((val, j) => (
-                                <td key={j} className="px-3 py-1.5 text-bb-gray-200 tabular-nums">{val != null ? String(val) : "\u2014"}</td>
+                    {Array.isArray(result.data) && result.data.length > 0 && (
+                      <div className="mt-4 overflow-x-auto rounded-lg border border-bb-border">
+                        <table className="w-full text-left text-xs font-mono">
+                          <thead>
+                            <tr className="border-b border-bb-border bg-bb-surface">
+                              {Object.keys(result.data[0]).map((key) => (
+                                <th key={key} className="px-3 py-2 text-xxs font-semibold uppercase tracking-wider text-bb-gray-400">{key}</th>
                               ))}
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {result.data.map((row, i) => (
+                              <tr key={i} className="border-b border-bb-border/50 bb-row-hover">
+                                {Object.values(row).map((val, j) => (
+                                  <td key={j} className="px-3 py-1.5 text-bb-gray-200 tabular-nums">{val != null ? String(val) : "\u2014"}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sources panel (inline, right side) */}
+                  {result.sources && result.sources.length > 0 && (
+                    <div className="bb-panel-inset rounded-lg bg-bb-panel p-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xxs font-mono font-semibold uppercase tracking-widest text-bb-gray-400">
+                          Sources ({result.sources.length})
+                        </span>
+                        <span className="flex items-center gap-1 rounded bg-bb_blue-bg/50 border border-bb_blue/20 px-1.5 py-0.5">
+                          <svg className="h-2.5 w-2.5 text-bb_blue-bright" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          <span className="text-xxs font-mono font-semibold text-bb_blue-bright">SEC</span>
+                        </span>
+                      </div>
+                      <DocumentTimeline sources={result.sources} />
                     </div>
                   )}
                 </div>
 
                 {/* Fiscal year note */}
                 {result.sources && result.sources.length > 0 && (
-                  <div className="flex items-start gap-2 rounded border border-bb-border bg-bb-surface px-3 py-2">
+                  <div className="flex items-start gap-2 rounded-lg border border-bb-border bg-bb-surface px-3 py-2">
                     <svg className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-bb-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className="text-xxs font-mono text-bb-gray-500 leading-relaxed">
                       Sources link to official SEC EDGAR filings. Dates shown are <span className="text-bb-gray-300">fiscal years</span>, which
-                      may differ from calendar years depending on the company's fiscal year-end
-                      (e.g., NVIDIA FY ends January, Apple FY ends September).
+                      may differ from calendar years depending on the company's fiscal year-end.
                     </span>
                   </div>
                 )}
@@ -2212,35 +2214,14 @@ function App() {
             )}
           </div>
         </main>
-
-        {/* ==================== RIGHT SIDEBAR ==================== */}
-        <aside className="hidden lg:flex flex-col w-72 flex-shrink-0 border-l border-bb-border bg-bb-panel overflow-y-auto">
-          <div className="p-3 border-b border-bb-border">
-            <div className="flex items-center justify-between">
-              <span className="text-xxs font-mono font-semibold uppercase tracking-widest text-bb-gray-400">
-                Sources{result?.sources?.length > 0 ? ` (${result.sources.length})` : ""}
-              </span>
-              <span className="flex items-center gap-1 rounded bg-bb_blue-bg/50 border border-bb_blue/20 px-1.5 py-0.5">
-                <svg className="h-2.5 w-2.5 text-bb_blue-bright" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <span className="text-xxs font-mono font-semibold text-bb_blue-bright">SEC Official</span>
-              </span>
-            </div>
-          </div>
-          <div className="flex-1 p-2 overflow-y-auto">
-            <DocumentTimeline sources={result?.sources} />
-          </div>
-
-        </aside>
       </div>
 
       {/* ==================== FOOTER STATUS BAR ==================== */}
-      <footer className="flex-shrink-0 h-8 flex items-center justify-between px-4 bg-bb-panel border-t border-bb-border text-xs font-mono">
+      <footer className="flex-shrink-0 h-8 flex items-center justify-between px-5 bg-bb-panel border-t border-bb-border text-xs font-mono">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 text-term-green">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-term-green" />
-            Connected
+          <span className="flex items-center gap-1.5 text-accent">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+            Online
           </span>
           {result?.route && (
             <span className="text-bb-gray-400">
@@ -2249,11 +2230,11 @@ function App() {
           )}
           {result?.response_time != null && (
             <span className="text-bb-gray-400">
-              Latency: <span className="text-bb-gray-200 tabular-nums">{result.response_time.toFixed(2)}s</span>
+              <span className="text-bb-gray-200 tabular-nums">{result.response_time.toFixed(2)}s</span>
             </span>
           )}
           {result?.cache_hit && (
-            <span className="text-term-green font-semibold flex items-center gap-1">
+            <span className="text-accent font-semibold flex items-center gap-1">
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
               </svg>
@@ -2264,16 +2245,14 @@ function App() {
         <div className="flex items-center gap-3">
           {queriesRemaining != null && (
             <span className="text-bb-gray-400">
-              Queries remaining:{" "}
-              <span className={`tabular-nums font-semibold ${queriesRemaining <= 2 ? "text-red-400" : queriesRemaining <= 5 ? "text-amber" : "text-term-green"}`}>
+              <span className={`tabular-nums font-semibold ${queriesRemaining <= 2 ? "text-red-400" : queriesRemaining <= 5 ? "text-amber" : "text-accent"}`}>
                 {queriesRemaining}
               </span>
-              <span className="text-bb-gray-500">/{DAILY_QUERY_LIMIT}</span>
+              <span className="text-bb-gray-500">/{DAILY_QUERY_LIMIT} queries</span>
             </span>
           )}
           {sessionCost > 0 && (
             <span className="text-bb-gray-400">
-              Session:{" "}
               <span className="text-amber tabular-nums font-semibold">
                 {sessionCost < 1
                   ? `${(sessionCost * 100).toFixed(3)}¢`
