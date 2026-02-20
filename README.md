@@ -2,7 +2,7 @@
 
 A financial data retrieval engine that lets you query SEC filings (10-K, 10-Q) in natural language. Under the hood, it combines relational database queries over structured XBRL data with vector search over filing narratives — powered by retrieval-augmented generation (RAG). Covers the top 10 S&P 500 companies from 2010 to present.
 
-**Live Demo:** [sec-rag-system.vercel.app](https://sec-rag-system.vercel.app)
+**Live Demo:** [sec-intelligence-system.vercel.app](https://sec-intelligence-system.vercel.app)
 
 ![Demo](demo.gif)
 
@@ -156,8 +156,8 @@ sec_rag_system/
 
 ```bash
 # Clone
-git clone https://github.com/bhattaraisubal-eng/sec-rag-system.git
-cd sec-rag-system
+git clone https://github.com/bhattaraisubal-eng/sec-intelligence-system.git
+cd sec-intelligence-system
 
 # Backend
 python -m venv .venv
