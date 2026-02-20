@@ -1,26 +1,46 @@
 # SEC Filing Intelligence Engine
 
-A financial data retrieval engine that lets you query SEC filings (10-K, 10-Q) in natural language. Under the hood, it combines relational database queries over structured XBRL data with vector search over filing narratives — powered by retrieval-augmented generation (RAG). Covers the top 10 S&P 500 companies from 2010 to present.
+> **Query SEC filings in plain English.** Structured XBRL data + vector search over filing narratives — answers in seconds, not hours.
 
-**Live Demo:** [sec-intelligence-system.vercel.app](https://sec-intelligence-system.vercel.app)
+**Live Demo:** [sec-intelligence-system.vercel.app](https://sec-intelligence-system.vercel.app) · **GitHub:** [source code](https://github.com/bhattaraisubal-eng/sec-intelligence-system)
 
 ![Demo](demo.gif)
 
 ## Why I Built This
 
-Financial analysts spend hours on tasks that should take seconds.
+### The problem
 
-Need Apple's Q3 revenue? You open SEC EDGAR, find the right 10-Q, download the filing, scroll through 80+ pages of legal boilerplate to find the income statement, then manually note the number. Want to compare it year-over-year? Repeat for last year's filing. Want to check if management's narrative about "strong growth" actually matches the numbers? Now you're cross-referencing MD&A commentary against XBRL data — a process that's tedious, error-prone, and completely unscalable.
+Financial analysts deal with this every day:
 
-The core problem is that SEC filings contain two fundamentally different types of information — **structured financial data** (XBRL-tagged numbers: revenue, net income, EPS) and **unstructured narrative text** (Risk Factors, MD&A, Business descriptions) — and answering real questions often requires both simultaneously. Existing tools handle one or the other. Bloomberg gives you the numbers but not the narrative context. ChatGPT can summarize text but hallucinates financial figures.
+- **Finding a single number takes 15+ minutes** — open SEC EDGAR, find the right 10-Q, download the filing, scroll through 80 pages of legal boilerplate to locate the income statement
+- **Year-over-year comparison? Double the work** — repeat the entire process for last year's filing, then manually calculate the delta
+- **Management says "strong growth" — but did revenue actually grow?** — cross-referencing MD&A narrative against XBRL data is tedious, error-prone, and completely unscalable
+- **Existing tools solve half the problem** — Bloomberg gives you numbers but not narrative context; ChatGPT can summarize text but hallucinates financial figures
 
-I wanted to build a system that solves this end-to-end:
+### The core insight
 
-- **Structured data first** — Revenue and net income come from XBRL facts via relational database queries with indexed lookups, not from extracting numbers out of prose. This is how financial data should be retrieved: directly from the machine-readable source the SEC requires companies to file.
-- **Vector search only where it belongs** — Narrative questions like "What are Apple's key risks?" use pgvector embeddings with cross-encoder reranking to find relevant passages across 134K+ filing section chunks. Semantic search is powerful for open-ended questions, but it's the wrong tool for precise financial metrics.
-- **Domain complexity handled, not hidden** — NVIDIA's fiscal year ends in January (FY2024 = Feb 2023–Jan 2024). XBRL concept tags get renamed across filing years (`us-gaap:Revenues` vs `us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax`). Q4 data doesn't exist in SEC filings — it has to be derived by subtracting Q1–Q3 from the annual total. These aren't edge cases; they're the everyday reality of working with financial data, and getting them wrong means giving analysts wrong numbers.
-- **Trust built in, not bolted on** — Every answer includes a 0–100 confidence score computed from 5 weighted signals, direct links to the source filing on sec.gov, and contradiction detection that flags when a management narrative ("revenue grew significantly") conflicts with the actual XBRL data (revenue declined 2.8%). Analysts need to verify. The system makes verification immediate.
-- **Intelligent routing, not one-size-fits-all** — "What was Apple's revenue?" and "What are Apple's risk factors?" are fundamentally different questions that need different retrieval strategies. The engine classifies each query and routes it through one of 5 specialized pipelines — because a relational database lookup is the right tool for a metric, and vector similarity search is the right tool for a narrative.
+SEC filings contain **two fundamentally different types of information**:
+
+| Type | Examples | Right retrieval method |
+|------|----------|----------------------|
+| **Structured data** | Revenue, net income, EPS, total assets | Relational DB queries over parsed XBRL facts |
+| **Unstructured narrative** | Risk Factors, MD&A, Business descriptions | Vector similarity search + reranking |
+
+Answering real analyst questions often requires **both simultaneously** — and each needs a completely different retrieval strategy. One-size-fits-all RAG doesn't work here.
+
+### What this engine does differently
+
+- **Structured data first** — Financial metrics come from XBRL facts via indexed relational queries, not from extracting numbers out of prose
+- **Vector search only where it belongs** — Narrative questions use pgvector embeddings + cross-encoder reranking across 134K+ filing chunks; precise metrics never touch the embedding pipeline
+- **Domain complexity handled, not hidden**
+  - NVIDIA's fiscal year ends in January (FY2024 = Feb 2023–Jan 2024)
+  - XBRL concept tags get renamed across years (`us-gaap:Revenues` → `us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax`)
+  - Q4 data doesn't exist in SEC filings — derived by subtracting Q1–Q3 from the annual total
+- **Trust built in, not bolted on**
+  - 0–100 confidence score from 5 weighted signals
+  - Direct source links to the filing on sec.gov
+  - Contradiction detection: flags when narrative claims conflict with actual XBRL numbers
+- **5 specialized retrieval routes** — The engine classifies each query and routes to the right pipeline (metric lookup, timeseries, full statement, narrative search, or hybrid)
 
 ## Architecture
 
