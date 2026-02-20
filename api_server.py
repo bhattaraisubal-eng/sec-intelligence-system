@@ -56,7 +56,7 @@ app.add_middleware(
 
 # --- Rate Limiting (IP-based + global daily cap) ---
 DAILY_QUERY_LIMIT = int(os.environ.get("DAILY_QUERY_LIMIT", "5"))
-GLOBAL_DAILY_LIMIT = int(os.environ.get("GLOBAL_DAILY_LIMIT", "50"))
+GLOBAL_DAILY_LIMIT = int(os.environ.get("GLOBAL_DAILY_LIMIT", "60"))
 ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY", "")
 _rate_limit_store: dict[str, dict] = defaultdict(lambda: {"date": date.today(), "count": 0})
 _global_counter: dict[str, int | object] = {"date": date.today(), "count": 0}
