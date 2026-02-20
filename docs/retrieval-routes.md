@@ -166,32 +166,48 @@ Weights vary by route type (relational routes weight retrieval quality higher).
 ## Example Query Flows
 
 ### "What was Apple's revenue in 2023?"
-```
-classify -> route: metric_lookup, ticker: AAPL, year: 2023, concept: us-gaap:Revenues
-retrieve -> annual_facts: AAPL, 2023, Revenues = $383,285M
-           annual_facts: AAPL, 2022, Revenues = $394,328M (for YoY)
-guardrails -> pass (XBRL data, high quality)
-generate -> "Apple's revenue for FY2023 was $383,285 million..."
-confidence -> 94.4 (High)
+
+```mermaid
+graph LR
+    A["Classify<br/>metric_lookup<br/>AAPL, 2023"] --> B["Retrieve<br/>annual_facts<br/>Revenues = $383,285M"]
+    B --> C["YoY Compare<br/>2022: $394,328M"]
+    C --> D["Guardrails<br/>pass ✓"]
+    D --> E["Generate Answer"]
+    E --> F["Confidence: 94.4<br/>🟢 High"]
+
+    style A fill:#f59e0b,stroke:#92400e,color:#fff
+    style B fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style F fill:#10b981,stroke:#065f46,color:#fff
 ```
 
 ### "What are the key risk factors in Meta's latest 10-K?"
-```
-classify -> route: narrative, ticker: META, year: 2024, sections: [Risk Factors]
-retrieve -> pgvector search on sections_10k WHERE ticker='META' AND fiscal_year=2024
-           -> 47 chunks from item_1a_risk_factors
-           -> rerank with cross-encoder -> top 15 chunks
-guardrails -> filter to 12 chunks above thresholds
-generate -> "Meta's key risk factors include..."
-confidence -> 78.2 (Medium) — narrative-only, no structured data cross-check
+
+```mermaid
+graph LR
+    A["Classify<br/>narrative<br/>META, 2024"] --> B["Retrieve<br/>pgvector search<br/>47 chunks"]
+    B --> C["Rerank<br/>cross-encoder<br/>→ top 15"]
+    C --> D["Guardrails<br/>filter → 12 chunks"]
+    D --> E["Generate Answer"]
+    E --> F["Confidence: 78.2<br/>🟡 Medium"]
+
+    style A fill:#f59e0b,stroke:#92400e,color:#fff
+    style B fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    style F fill:#f59e0b,stroke:#92400e,color:#fff
 ```
 
 ### "Compare AAPL and MSFT revenue growth 2020-2024"
-```
-classify -> route: hybrid, tickers: [AAPL, MSFT], years: [2020-2024], intent: timeseries
-retrieve -> relational: timeseries for both tickers (Revenues, 2020-2024)
-           vector: narrative chunks about revenue from both companies
-guardrails -> per-ticker fair allocation (25 chunks each)
-generate -> "Apple's revenue grew from $274.5B to $391.0B (42.4%)..."
-confidence -> 88.1 (High) — strong XBRL coverage + narrative context
+
+```mermaid
+graph LR
+    A["Classify<br/>hybrid<br/>AAPL + MSFT"] --> B["Retrieve Relational<br/>timeseries 2020-2024"]
+    A --> C["Retrieve Vector<br/>narrative chunks"]
+    B --> D["Guardrails<br/>fair allocation<br/>25 chunks each"]
+    C --> D
+    D --> E["Generate Answer"]
+    E --> F["Confidence: 88.1<br/>🟢 High"]
+
+    style A fill:#f59e0b,stroke:#92400e,color:#fff
+    style B fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style C fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    style F fill:#10b981,stroke:#065f46,color:#fff
 ```

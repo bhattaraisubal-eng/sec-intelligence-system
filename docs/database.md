@@ -6,18 +6,54 @@ PostgreSQL 17 with the pgvector extension. All tables live in the `public` schem
 
 ## Entity-Relationship Diagram
 
-```
-filings (1) ----< (N) annual_facts
-   |
-   +----------< (N) quarterly_facts
-   |
-   +----------< (N) earnings_reports
-   |
-   +----------< (N) filing_sections
+```mermaid
+erDiagram
+    filings ||--o{ annual_facts : "has"
+    filings ||--o{ quarterly_facts : "has"
+    filings ||--o{ earnings_reports : "has"
+    filings ||--o{ filing_sections : "has"
 
-sections_10k (standalone, with embeddings)
-sections_10q (standalone, with embeddings)
-financial_documents (standalone)
+    filings {
+        int id PK
+        varchar ticker
+        varchar form_type
+        date filing_date
+        int fiscal_year
+    }
+    annual_facts {
+        int id PK
+        int filing_id FK
+        varchar concept
+        numeric value
+    }
+    quarterly_facts {
+        int id PK
+        int filing_id FK
+        varchar concept
+        numeric value
+        int fiscal_quarter
+    }
+    sections_10k {
+        int id PK
+        varchar ticker
+        int fiscal_year
+        text section_text
+        vector embedding
+    }
+    sections_10q {
+        int id PK
+        varchar ticker
+        int fiscal_year
+        int fiscal_quarter
+        text section_text
+        vector embedding
+    }
+    financial_documents {
+        int id PK
+        varchar ticker
+        varchar statement_type
+        text markdown_content
+    }
 ```
 
 ## Tables

@@ -6,65 +6,40 @@ The SEC RAG System is a retrieval-augmented generation pipeline that answers nat
 
 ## High-Level Data Flow
 
-```
-                          +-------------------+
-                          |   React Frontend  |
-                          |   (Vercel)        |
-                          +--------+----------+
-                                   | SSE / REST
-                                   v
-                          +-------------------+
-                          |   FastAPI Server   |
-                          |   api_server.py    |
-                          +--------+----------+
-                                   |
-                    +--------------+--------------+
-                    |                             |
-                    v                             v
-          +------------------+          +------------------+
-          | Query Classifier |          |  Redis Cache     |
-          | (GPT-4o-mini)    |          |  (3 layers)      |
-          +--------+---------+          +------------------+
-                   |
-                   v
-          +------------------+
-          | Retrieval Router |
-          +--------+---------+
-                   |
-        +----------+----------+----------+----------+
-        |          |          |          |          |
-        v          v          v          v          v
-   metric_    timeseries  full_      narrative   hybrid
-   lookup                 statement
-        |          |          |          |          |
-        v          v          v          v          v
-   +----------+  +----------+  +----------+  +----------+
-   | XBRL     |  | XBRL     |  | Financial|  | pgvector |
-   | Facts    |  | Timeseries|  | Stmts   |  | Search   |
-   +----------+  +----------+  +----------+  +----------+
-        \             |             /              |
-         \            |            /               |
-          v           v           v                v
-       +-------------------+        +-------------------+
-       |   PostgreSQL       |        | Reranker          |
-       |   (Relational)     |        | (cross-encoder)   |
-       +-------------------+        +-------------------+
-                    \                      /
-                     v                    v
-              +---------------------------+
-              | Guardrails & Confidence    |
-              | - Retrieval filtering      |
-              | - Contradiction detection  |
-              | - Confidence scoring       |
-              +------------+--------------+
-                           |
-                           v
-              +---------------------------+
-              | Answer Generation          |
-              | (GPT-4o-mini)              |
-              | - Source attribution       |
-              | - Cost tracking            |
-              +---------------------------+
+```mermaid
+graph TD
+    A["React Frontend<br/>(Vercel)"] -->|"SSE / REST"| B["FastAPI Server<br/>api_server.py"]
+    B --> C["Redis Cache<br/>(3 layers)"]
+    B --> D["Query Classifier<br/>(GPT-4o-mini)"]
+    D --> E{Retrieval Router}
+
+    E -->|"metric_lookup"| F["XBRL Facts"]
+    E -->|"timeseries"| G["XBRL Timeseries"]
+    E -->|"full_statement"| H["Financial Statements"]
+    E -->|"narrative"| I["pgvector Search"]
+    E -->|"hybrid"| J["Relational + Vector"]
+
+    F --> K["PostgreSQL<br/>(Relational)"]
+    G --> K
+    H --> K
+    I --> K
+    J --> K
+
+    I --> L["Reranker<br/>(cross-encoder)"]
+    J --> L
+
+    K --> M["Guardrails & Confidence<br/>• Retrieval filtering<br/>• Contradiction detection<br/>• Confidence scoring"]
+    L --> M
+
+    M --> N["Answer Generation<br/>(GPT-4o-mini)<br/>• Source attribution<br/>• Cost tracking"]
+
+    style A fill:#10b981,stroke:#065f46,color:#fff
+    style C fill:#f59e0b,stroke:#92400e,color:#fff
+    style E fill:#f59e0b,stroke:#92400e,color:#fff
+    style K fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style L fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    style M fill:#10b981,stroke:#065f46,color:#fff
+    style N fill:#10b981,stroke:#065f46,color:#fff
 ```
 
 ## Component Details
@@ -171,24 +146,22 @@ def get_connection_pool():
 
 The `backfill_pipeline.py` orchestrates the full ingestion:
 
-```
-SEC EDGAR API
-    |
-    v
-1. Fetch filings metadata (10-K, 10-Q)
-    |
-    v
-2. Parse XBRL -> annual_facts, quarterly_facts
-    |
-    v
-3. Fetch financial statements -> financial_documents
-    |
-    v
-4. Extract filing sections -> filing_sections
-    |
-    v
-5. Chunk sections + generate embeddings -> sections_10k, sections_10q
+```mermaid
+graph LR
+    A["SEC EDGAR API"] -->|"rate limited<br/>0.15s/call"| B["Fetch Filings<br/>Metadata"]
+    B --> C["Parse XBRL"]
+    C --> D["annual_facts<br/>quarterly_facts"]
+    B --> E["Fetch Financial<br/>Statements"]
+    E --> F["financial_documents"]
+    B --> G["Extract Sections"]
+    G --> H["filing_sections"]
+    H --> I["Chunk + Embed<br/>(text-embedding-3-small)"]
+    I --> J["sections_10k<br/>sections_10q"]
 
+    style A fill:#f59e0b,stroke:#92400e,color:#fff
+    style D fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style F fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style J fill:#8b5cf6,stroke:#4c1d95,color:#fff
 ```
 
 Rate limited at 0.15s between SEC EDGAR API calls.
