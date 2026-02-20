@@ -10,35 +10,38 @@
 
 ### The problem
 
-Compare revenue of AAPL vs MSFT 2023 and what contributed the most to revenue generation for each companies.
-Sounds simple, right?
-Now let’s see what it actually takes.
-🔎 If You Do This Manually:
--Step 1:
-Go to SEC EDGAR.
--Step 2:
-Find Apple’s FY2023 10-K.
--Step 3:
-Scroll through 80+ pages of legal text.
--Step 4:
-Locate the Consolidated Statements of Operations.
--Step 5:
-Extract total revenue.
--Step 6:
-Scroll further to find “Revenue by Segment” footnotes.
--Step 7:
-Identify which segment contributed the most (iPhone? Services?).
--Now repeat the entire process for Microsoft:
--Find Microsoft FY2023 10-K
--Extract total revenue
--Locate segment reporting
--Compare Intelligent Cloud vs Productivity vs Personal Computing
--Normalize fiscal year differences (Apple ends Sept, Microsoft ends June)
--Cross-check management commentary in MD&A
--Make sure numbers tie to XBRL
--That’s easily 30–60 minutes.
-For one question.
+Try answering this:
 
+> *"Compare revenue of AAPL vs MSFT 2023 — what contributed the most to revenue generation for each company?"*
+
+Sounds simple. Here's what it actually takes:
+
+**If you do this manually:**
+
+1. Go to [SEC EDGAR](https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany)
+2. Search for Apple's FY2023 10-K filing
+3. Scroll through **80+ pages** of legal boilerplate
+4. Find the Consolidated Statements of Operations — extract total revenue
+5. Scroll further to the segment reporting footnotes — figure out which segment (iPhone? Services?) drove the most revenue
+6. **Now repeat the entire process for Microsoft:**
+   - Find MSFT's FY2023 10-K
+   - Extract total revenue
+   - Locate segment reporting (Intelligent Cloud vs Productivity vs Personal Computing)
+   - Normalize for fiscal year differences (Apple ends in September, Microsoft ends in June)
+   - Cross-check management commentary in MD&A
+   - Make sure the numbers actually tie to the XBRL data
+
+That's **30–60 minutes** of manual work. For one question.
+
+**What this engine returns in ~5 seconds:**
+
+| | Apple (AAPL) | Microsoft (MSFT) |
+|---|---|---|
+| **FY2023 Revenue** | $383.29B | $211.91B |
+| **Top segment** | iPhone — $200.58B (52%) | Microsoft Cloud — $137.4B (65%) |
+| **#2 segment** | Services — $85.20B (22%) | Office Commercial — $69.27B (33%) |
+
+Plus source citations linking directly to the SEC filings, a confidence score, and contradiction detection — all streamed in real time.
 
 ### The core insight
 
