@@ -42,11 +42,11 @@ const ROUTE_LABELS = {
 };
 
 const EXAMPLE_QUERIES = [
-  "What was total revenue in 2023?",
-  "Show revenue trend from 2018 to 2023",
+  "What was Apple's revenue in 2023?",
+  "How has NVIDIA revenue changed from 2020 to 2024?",
   "Compare net income AAPL vs MSFT 2023",
-  "What did management say about AI in latest 10-K?",
-  "Show full income statement for 2023",
+  "What are the key risk factors in Meta's latest 10-K?",
+  "Show JPMorgan balance sheet for 2023",
 ];
 
 const STEP_ICONS = {
