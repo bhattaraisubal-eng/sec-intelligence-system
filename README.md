@@ -71,61 +71,102 @@ Answering real analyst questions often requires **both simultaneously** — and 
 ## Architecture
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 graph TD
-    A["🔍 User Query"] --> B["React Frontend<br/>(Vercel)"]
-    B -->|SSE| C["FastAPI Backend<br/>(Railway)"]
-    C --> D["Query Classifier<br/>(GPT-4o-mini)"]
-    D --> E{Retrieval Router}
+    A["🔍 User Query"] --> B["React Frontend"]
+    B -->|"SSE"| C["FastAPI Backend"]
 
-    E -->|"metric_lookup"| F["XBRL Facts<br/>annual_facts / quarterly_facts"]
-    E -->|"timeseries"| G["XBRL Timeseries<br/>multi-period data"]
-    E -->|"full_statement"| H["Financial Statements<br/>income / balance / cash flow"]
-    E -->|"narrative"| I["Vector Search<br/>pgvector cosine similarity"]
-    E -->|"hybrid"| J["Relational + Vector<br/>combined retrieval"]
+    subgraph classification ["🧠 Classification"]
+        C --> D["Query Classifier<br/><small>GPT-4o-mini</small>"]
+        D --> E{{"5-Way Router"}}
+    end
 
-    F --> K["PostgreSQL"]
+    subgraph retrieval ["📡 Retrieval Routes"]
+        E -->|"metric_lookup"| F["XBRL Facts<br/><small>annual / quarterly</small>"]
+        E -->|"timeseries"| G["XBRL Timeseries<br/><small>multi-period</small>"]
+        E -->|"full_statement"| H["Financial Statements<br/><small>income / balance / cash</small>"]
+        E -->|"narrative"| I["Vector Search<br/><small>pgvector cosine</small>"]
+        E -->|"hybrid"| J["Relational + Vector<br/><small>combined</small>"]
+    end
+
+    subgraph storage ["🗄️ Data Layer"]
+        K[("PostgreSQL<br/>+ pgvector")]
+    end
+
+    F --> K
     G --> K
     H --> K
     I --> K
     J --> K
 
-    I --> L["Cross-Encoder Reranker<br/>ms-marco-MiniLM-L-6-v2"]
+    I --> L["Cross-Encoder Reranker<br/><small>ms-marco-MiniLM-L-6-v2</small>"]
     J --> L
 
-    K --> M["Guardrails"]
+    subgraph trust ["🛡️ Trust & Validation"]
+        M["Guardrails<br/><small>filter + validate</small>"]
+        M --> N["Contradiction Detection<br/><small>narrative vs XBRL</small>"]
+        N --> O["Confidence Scoring<br/><small>5 signals → 0-100</small>"]
+    end
+
+    K --> M
     L --> M
 
-    M -->|"filter + validate"| N["Contradiction Detection<br/>narrative vs XBRL"]
-    N --> O["Confidence Scoring<br/>5 weighted signals → 0-100"]
-    O --> P["Answer Generation<br/>(GPT-4o-mini)"]
-    P --> Q["Streamed Response<br/>with source attribution"]
+    O --> P["Answer Generation<br/><small>GPT-4o-mini</small>"]
+    P --> Q["⚡ Streamed Response<br/><small>with source attribution</small>"]
 
-    style A fill:#10b981,stroke:#065f46,color:#fff
-    style E fill:#f59e0b,stroke:#92400e,color:#fff
-    style K fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style L fill:#8b5cf6,stroke:#4c1d95,color:#fff
-    style O fill:#10b981,stroke:#065f46,color:#fff
-    style Q fill:#10b981,stroke:#065f46,color:#fff
+    classDef input fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+    classDef router fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef db fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    classDef ml fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    classDef output fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+
+    class A,Q input
+    class E router
+    class K db
+    class L ml
+    class O output
+
+    style classification fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style retrieval fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style storage fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style trust fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 ### Data Ingestion Pipeline
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 graph LR
-    A["SEC EDGAR API"] -->|"rate limited"| B["Fetch Filing Metadata"]
-    B --> C["Parse XBRL"]
-    C --> D["annual_facts<br/>quarterly_facts"]
-    B --> E["Fetch Financial Statements"]
-    E --> F["financial_documents"]
-    B --> G["Extract Sections"]
-    G --> H["filing_sections"]
-    H --> I["Chunk + Embed<br/>(text-embedding-3-small)"]
-    I --> J["sections_10k<br/>sections_10q<br/>(pgvector)"]
+    A["🌐 SEC EDGAR API"] -->|"rate limited<br/>10 req/sec"| B["Fetch Filing<br/>Metadata"]
 
-    style A fill:#f59e0b,stroke:#92400e,color:#fff
-    style D fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style F fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style J fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    subgraph parse ["📊 Parse & Extract"]
+        B --> C["Parse XBRL"]
+        B --> E["Fetch Financial<br/>Statements"]
+        B --> G["Extract Sections"]
+    end
+
+    subgraph store ["🗄️ Store"]
+        C --> D[("annual_facts<br/>quarterly_facts")]
+        E --> F[("financial_documents")]
+        G --> H[("filing_sections")]
+    end
+
+    subgraph embed ["🔮 Embed"]
+        H --> I["Chunk + Embed<br/><small>text-embedding-3-small</small>"]
+        I --> J[("sections_10k<br/>sections_10q<br/><small>pgvector</small>")]
+    end
+
+    classDef source fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef db fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    classDef vector fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+
+    class A source
+    class D,F db
+    class J vector
+
+    style parse fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style store fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style embed fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 For detailed documentation, see:

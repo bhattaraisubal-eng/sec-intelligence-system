@@ -168,46 +168,81 @@ Weights vary by route type (relational routes weight retrieval quality higher).
 ### "What was Apple's revenue in 2023?"
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 graph LR
-    A["Classify<br/>metric_lookup<br/>AAPL, 2023"] --> B["Retrieve<br/>annual_facts<br/>Revenues = $383,285M"]
-    B --> C["YoY Compare<br/>2022: $394,328M"]
-    C --> D["Guardrails<br/>pass ✓"]
-    D --> E["Generate Answer"]
-    E --> F["Confidence: 94.4<br/>🟢 High"]
+    A["🧠 Classify<br/><small>metric_lookup</small><br/><small>AAPL · 2023</small>"]
+    B["🗄️ Retrieve<br/><small>annual_facts</small><br/><small>Revenue = $383,285M</small>"]
+    C["📊 YoY Compare<br/><small>2022: $394,328M</small><br/><small>Δ -2.8%</small>"]
+    D["🛡️ Guardrails<br/><small>pass ✓</small>"]
+    E["✍️ Generate<br/><small>GPT-4o-mini</small>"]
+    F["✅ 94.4 / 100<br/><small>High Confidence</small>"]
 
-    style A fill:#f59e0b,stroke:#92400e,color:#fff
-    style B fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style F fill:#10b981,stroke:#065f46,color:#fff
+    A --> B --> C --> D --> E --> F
+
+    classDef classify fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef data fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    classDef output fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+
+    class A classify
+    class B,C data
+    class F output
 ```
 
 ### "What are the key risk factors in Meta's latest 10-K?"
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 graph LR
-    A["Classify<br/>narrative<br/>META, 2024"] --> B["Retrieve<br/>pgvector search<br/>47 chunks"]
-    B --> C["Rerank<br/>cross-encoder<br/>→ top 15"]
-    C --> D["Guardrails<br/>filter → 12 chunks"]
-    D --> E["Generate Answer"]
-    E --> F["Confidence: 78.2<br/>🟡 Medium"]
+    A["🧠 Classify<br/><small>narrative</small><br/><small>META · 2024</small>"]
+    B["🔮 Retrieve<br/><small>pgvector search</small><br/><small>47 chunks</small>"]
+    C["🔀 Rerank<br/><small>cross-encoder</small><br/><small>→ top 15</small>"]
+    D["🛡️ Guardrails<br/><small>filter → 12 chunks</small>"]
+    E["✍️ Generate<br/><small>GPT-4o-mini</small>"]
+    F["🟡 78.2 / 100<br/><small>Medium Confidence</small>"]
 
-    style A fill:#f59e0b,stroke:#92400e,color:#fff
-    style B fill:#8b5cf6,stroke:#4c1d95,color:#fff
-    style F fill:#f59e0b,stroke:#92400e,color:#fff
+    A --> B --> C --> D --> E --> F
+
+    classDef classify fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef vector fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    classDef medium fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+
+    class A classify
+    class B,C vector
+    class F medium
 ```
 
 ### "Compare AAPL and MSFT revenue growth 2020-2024"
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 graph LR
-    A["Classify<br/>hybrid<br/>AAPL + MSFT"] --> B["Retrieve Relational<br/>timeseries 2020-2024"]
-    A --> C["Retrieve Vector<br/>narrative chunks"]
-    B --> D["Guardrails<br/>fair allocation<br/>25 chunks each"]
-    C --> D
-    D --> E["Generate Answer"]
-    E --> F["Confidence: 88.1<br/>🟢 High"]
+    A["🧠 Classify<br/><small>hybrid</small><br/><small>AAPL + MSFT</small>"]
 
-    style A fill:#f59e0b,stroke:#92400e,color:#fff
-    style B fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style C fill:#8b5cf6,stroke:#4c1d95,color:#fff
-    style F fill:#10b981,stroke:#065f46,color:#fff
+    subgraph parallel ["⚡ Parallel Retrieval"]
+        B["🗄️ Relational<br/><small>timeseries 2020-2024</small><br/><small>XBRL facts</small>"]
+        C["🔮 Vector<br/><small>narrative chunks</small><br/><small>pgvector + rerank</small>"]
+    end
+
+    A --> B
+    A --> C
+
+    D["🛡️ Guardrails<br/><small>fair allocation</small><br/><small>25 chunks/ticker</small>"]
+    E["✍️ Generate<br/><small>GPT-4o-mini</small>"]
+    F["✅ 88.1 / 100<br/><small>High Confidence</small>"]
+
+    B --> D
+    C --> D
+    D --> E --> F
+
+    classDef classify fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef relational fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    classDef vector fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    classDef output fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+
+    class A classify
+    class B relational
+    class C vector
+    class F output
+
+    style parallel fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
 ```

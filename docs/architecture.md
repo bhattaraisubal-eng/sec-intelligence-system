@@ -7,39 +7,73 @@ The SEC Filing Intelligence Engine is a financial data retrieval system that ans
 ## High-Level Data Flow
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 graph TD
-    A["React Frontend<br/>(Vercel)"] -->|"SSE / REST"| B["FastAPI Server<br/>api_server.py"]
-    B --> C["Redis Cache<br/>(3 layers)"]
-    B --> D["Query Classifier<br/>(GPT-4o-mini)"]
-    D --> E{Retrieval Router}
+    A["🖥️ React Frontend<br/><small>Vercel</small>"] -->|"SSE / REST"| B["⚡ FastAPI Server<br/><small>api_server.py</small>"]
 
-    E -->|"metric_lookup"| F["XBRL Facts"]
-    E -->|"timeseries"| G["XBRL Timeseries"]
-    E -->|"full_statement"| H["Financial Statements"]
-    E -->|"narrative"| I["pgvector Search"]
-    E -->|"hybrid"| J["Relational + Vector"]
+    subgraph caching ["⚡ Cache Layer"]
+        C[("Redis Cache<br/><small>3 layers: query · classify · retrieval</small>")]
+    end
 
-    F --> K["PostgreSQL<br/>(Relational)"]
+    B --> C
+    B --> D
+
+    subgraph classification ["🧠 Classification"]
+        D["Query Classifier<br/><small>GPT-4o-mini · function calling</small>"]
+        D --> E{{"5-Way Router"}}
+    end
+
+    subgraph retrieval ["📡 5 Retrieval Routes"]
+        E -->|"metric_lookup"| F["XBRL Facts"]
+        E -->|"timeseries"| G["XBRL Timeseries"]
+        E -->|"full_statement"| H["Financial Statements"]
+        E -->|"narrative"| I["pgvector Search"]
+        E -->|"hybrid"| J["Relational + Vector"]
+    end
+
+    subgraph data ["🗄️ Data Layer"]
+        K[("PostgreSQL + pgvector<br/><small>1M+ XBRL facts · 134K+ chunks</small>")]
+    end
+
+    F --> K
     G --> K
     H --> K
     I --> K
     J --> K
 
-    I --> L["Reranker<br/>(cross-encoder)"]
+    I --> L["🔀 Cross-Encoder Reranker<br/><small>ms-marco-MiniLM-L-6-v2</small>"]
     J --> L
 
-    K --> M["Guardrails & Confidence<br/>• Retrieval filtering<br/>• Contradiction detection<br/>• Confidence scoring"]
+    subgraph trust ["🛡️ Trust Pipeline"]
+        M["Guardrails<br/><small>retrieval filtering</small>"]
+        M --> M2["Contradiction Detection<br/><small>narrative vs XBRL</small>"]
+        M2 --> M3["Confidence Scoring<br/><small>5 signals → 0-100</small>"]
+    end
+
+    K --> M
     L --> M
 
-    M --> N["Answer Generation<br/>(GPT-4o-mini)<br/>• Source attribution<br/>• Cost tracking"]
+    M3 --> N["✅ Answer Generation<br/><small>GPT-4o-mini · source attribution · cost tracking</small>"]
 
-    style A fill:#10b981,stroke:#065f46,color:#fff
-    style C fill:#f59e0b,stroke:#92400e,color:#fff
-    style E fill:#f59e0b,stroke:#92400e,color:#fff
-    style K fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style L fill:#8b5cf6,stroke:#4c1d95,color:#fff
-    style M fill:#10b981,stroke:#065f46,color:#fff
-    style N fill:#10b981,stroke:#065f46,color:#fff
+    classDef frontend fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+    classDef cache fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef router fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef db fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    classDef ml fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+    classDef output fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+
+    class A frontend
+    class C cache
+    class E router
+    class K db
+    class L ml
+    class N output
+
+    style caching fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style classification fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style retrieval fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style data fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style trust fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 ## Component Details
@@ -147,21 +181,38 @@ def get_connection_pool():
 The `backfill_pipeline.py` orchestrates the full ingestion:
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 graph LR
-    A["SEC EDGAR API"] -->|"rate limited<br/>0.15s/call"| B["Fetch Filings<br/>Metadata"]
-    B --> C["Parse XBRL"]
-    C --> D["annual_facts<br/>quarterly_facts"]
-    B --> E["Fetch Financial<br/>Statements"]
-    E --> F["financial_documents"]
-    B --> G["Extract Sections"]
-    G --> H["filing_sections"]
-    H --> I["Chunk + Embed<br/>(text-embedding-3-small)"]
-    I --> J["sections_10k<br/>sections_10q"]
+    A["🌐 SEC EDGAR API"] -->|"rate limited<br/>0.15s/call"| B["Fetch Filings<br/>Metadata"]
 
-    style A fill:#f59e0b,stroke:#92400e,color:#fff
-    style D fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style F fill:#3b82f6,stroke:#1e3a5f,color:#fff
-    style J fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    subgraph parse ["📊 Parse & Extract"]
+        B --> C["Parse XBRL"]
+        B --> E["Fetch Financial<br/>Statements"]
+        B --> G["Extract Sections"]
+    end
+
+    subgraph store ["🗄️ PostgreSQL"]
+        C --> D[("annual_facts<br/>quarterly_facts")]
+        E --> F[("financial_documents")]
+        G --> H[("filing_sections")]
+    end
+
+    subgraph embed ["🔮 Embedding Pipeline"]
+        H --> I["Chunk + Embed<br/><small>text-embedding-3-small · 1536 dims</small>"]
+        I --> J[("sections_10k<br/>sections_10q<br/><small>pgvector IVFFlat</small>")]
+    end
+
+    classDef source fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef db fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
+    classDef vector fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
+
+    class A source
+    class D,F db
+    class J vector
+
+    style parse fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style store fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style embed fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 Rate limited at 0.15s between SEC EDGAR API calls.

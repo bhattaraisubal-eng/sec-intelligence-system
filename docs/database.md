@@ -7,57 +7,74 @@ PostgreSQL 17 with the pgvector extension. All tables live in the `public` schem
 ## Entity-Relationship Diagram
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
 erDiagram
-    filings ||--o{ filing_sections : "has"
-    filings ||--o{ annual_facts : "has"
-    filings ||--o{ quarterly_facts : "has"
+    filings ||--o{ filing_sections : "has sections"
+    filings ||--o{ annual_facts : "has annual data"
+    filings ||--o{ quarterly_facts : "has quarterly data"
+    filing_sections ||--o{ sections_10k : "chunked into"
+    filing_sections ||--o{ sections_10q : "chunked into"
 
-    filing_sections {
-        int id PK
-        int filing_id FK
-        varchar section_key
-        text section_text
-    }
     filings {
-        int id PK
-        varchar ticker
-        varchar form_type
-        date filing_date
-        int fiscal_year
+        serial id PK "Primary key"
+        varchar ticker "e.g. AAPL"
+        varchar form_type "10-K or 10-Q"
+        date filing_date "SEC filing date"
+        int fiscal_year "Fiscal year"
+        varchar accession_number UK "SEC accession #"
     }
     annual_facts {
-        int id PK
-        int filing_id FK
-        varchar concept
-        numeric value
+        serial id PK
+        int filing_id FK "→ filings.id"
+        varchar ticker "Company ticker"
+        int fiscal_year "Fiscal year"
+        varchar concept "XBRL tag"
+        numeric value "Parsed value"
+        varchar unit "USD, shares, etc"
+        varchar dimension "NULL = consolidated"
     }
     quarterly_facts {
-        int id PK
-        int filing_id FK
-        varchar concept
-        numeric value
-        int fiscal_quarter
+        serial id PK
+        int filing_id FK "→ filings.id"
+        varchar ticker "Company ticker"
+        int fiscal_year "Fiscal year"
+        int fiscal_quarter "1-4"
+        varchar concept "XBRL tag"
+        numeric value "Parsed value"
+    }
+    filing_sections {
+        serial id PK
+        int filing_id FK "→ filings.id"
+        varchar section_key "e.g. item_1a_risk_factors"
+        text section_text "Full section content"
+        int word_count "Section length"
     }
     sections_10k {
-        int id PK
-        varchar ticker
-        int fiscal_year
-        text section_text
-        vector embedding
+        serial id PK
+        varchar ticker "Company ticker"
+        int fiscal_year "Fiscal year"
+        varchar section_id "Section identifier"
+        text section_text "Chunk text"
+        vector embedding "1536-dim vector"
+        boolean is_chunked "TRUE = chunk"
+        int chunk_index "Position in section"
     }
     sections_10q {
-        int id PK
-        varchar ticker
-        int fiscal_year
-        int fiscal_quarter
-        text section_text
-        vector embedding
+        serial id PK
+        varchar ticker "Company ticker"
+        int fiscal_year "Fiscal year"
+        int fiscal_quarter "1-4"
+        varchar section_id "Section identifier"
+        text section_text "Chunk text"
+        vector embedding "1536-dim vector"
     }
     financial_documents {
-        int id PK
-        varchar ticker
-        varchar statement_type
-        text markdown_content
+        serial id PK
+        varchar ticker "Company ticker"
+        varchar statement_type "income / balance / cash"
+        int fiscal_year "Fiscal year"
+        int fiscal_quarter "NULL for annual"
+        text markdown_content "Full statement"
     }
 ```
 
