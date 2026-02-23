@@ -71,26 +71,26 @@ Answering real analyst questions often requires **both simultaneously** — and 
 ## Architecture
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 graph TD
     A["🔍 User Query"] --> B["React Frontend"]
     B -->|"SSE"| C["FastAPI Backend"]
 
-    subgraph classification ["🧠 Classification"]
-        C --> D["Query Classifier<br/><small>GPT-4o-mini</small>"]
+    subgraph classification [" 🧠 Classification "]
+        C --> D["Query Classifier<br/>GPT-4o-mini"]
         D --> E{{"5-Way Router"}}
     end
 
-    subgraph retrieval ["📡 Retrieval Routes"]
-        E -->|"metric_lookup"| F["XBRL Facts<br/><small>annual / quarterly</small>"]
-        E -->|"timeseries"| G["XBRL Timeseries<br/><small>multi-period</small>"]
-        E -->|"full_statement"| H["Financial Statements<br/><small>income / balance / cash</small>"]
-        E -->|"narrative"| I["Vector Search<br/><small>pgvector cosine</small>"]
-        E -->|"hybrid"| J["Relational + Vector<br/><small>combined</small>"]
+    subgraph retrieval [" 📡 Retrieval Routes "]
+        E -->|"metric_lookup"| F["XBRL Facts<br/>annual / quarterly"]
+        E -->|"timeseries"| G["XBRL Timeseries<br/>multi-period"]
+        E -->|"full_statement"| H["Financial Statements<br/>income / balance / cash"]
+        E -->|"narrative"| I["Vector Search<br/>pgvector cosine"]
+        E -->|"hybrid"| J["Relational + Vector"]
     end
 
-    subgraph storage ["🗄️ Data Layer"]
-        K[("PostgreSQL<br/>+ pgvector")]
+    subgraph storage [" 🗄️ Data Layer "]
+        K[("PostgreSQL + pgvector")]
     end
 
     F --> K
@@ -99,61 +99,59 @@ graph TD
     I --> K
     J --> K
 
-    I --> L["Cross-Encoder Reranker<br/><small>ms-marco-MiniLM-L-6-v2</small>"]
+    I --> L["Cross-Encoder Reranker<br/>ms-marco-MiniLM-L-6-v2"]
     J --> L
 
-    subgraph trust ["🛡️ Trust & Validation"]
-        M["Guardrails<br/><small>filter + validate</small>"]
-        M --> N["Contradiction Detection<br/><small>narrative vs XBRL</small>"]
-        N --> O["Confidence Scoring<br/><small>5 signals → 0-100</small>"]
+    subgraph trust [" 🛡️ Trust & Validation "]
+        M["Guardrails"]
+        M --> N["Contradiction Detection<br/>narrative vs XBRL"]
+        N --> O["Confidence Scoring<br/>5 signals → 0-100"]
     end
 
     K --> M
     L --> M
 
-    O --> P["Answer Generation<br/><small>GPT-4o-mini</small>"]
-    P --> Q["⚡ Streamed Response<br/><small>with source attribution</small>"]
+    O --> P["Answer Generation<br/>GPT-4o-mini"]
+    P --> Q["⚡ Streamed Response<br/>with source attribution"]
 
     classDef input fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
     classDef router fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
     classDef db fill:#3b82f6,stroke:#2563eb,color:#fff,stroke-width:2px
     classDef ml fill:#8b5cf6,stroke:#7c3aed,color:#fff,stroke-width:2px
-    classDef output fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
 
     class A,Q input
     class E router
     class K db
     class L ml
-    class O output
 
-    style classification fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style retrieval fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style storage fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style trust fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style classification fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style retrieval fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style storage fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style trust fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 ### Data Ingestion Pipeline
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 graph LR
-    A["🌐 SEC EDGAR API"] -->|"rate limited<br/>10 req/sec"| B["Fetch Filing<br/>Metadata"]
+    A["🌐 SEC EDGAR API"] -->|"rate limited"| B["Fetch Metadata"]
 
-    subgraph parse ["📊 Parse & Extract"]
+    subgraph parse [" 📊 Parse & Extract "]
         B --> C["Parse XBRL"]
-        B --> E["Fetch Financial<br/>Statements"]
+        B --> E["Fetch Statements"]
         B --> G["Extract Sections"]
     end
 
-    subgraph store ["🗄️ Store"]
+    subgraph store [" 🗄️ Store "]
         C --> D[("annual_facts<br/>quarterly_facts")]
         E --> F[("financial_documents")]
         G --> H[("filing_sections")]
     end
 
-    subgraph embed ["🔮 Embed"]
-        H --> I["Chunk + Embed<br/><small>text-embedding-3-small</small>"]
-        I --> J[("sections_10k<br/>sections_10q<br/><small>pgvector</small>")]
+    subgraph embed [" 🔮 Embed "]
+        H --> I["Chunk + Embed<br/>text-embedding-3-small"]
+        I --> J[("sections_10k<br/>sections_10q")]
     end
 
     classDef source fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
@@ -164,9 +162,9 @@ graph LR
     class D,F db
     class J vector
 
-    style parse fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style store fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style embed fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style parse fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style store fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style embed fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 For detailed documentation, see:

@@ -7,23 +7,23 @@ The SEC Filing Intelligence Engine is a financial data retrieval system that ans
 ## High-Level Data Flow
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 graph TD
-    A["🖥️ React Frontend<br/><small>Vercel</small>"] -->|"SSE / REST"| B["⚡ FastAPI Server<br/><small>api_server.py</small>"]
+    A["🖥️ React Frontend<br/>Vercel"] -->|"SSE / REST"| B["⚡ FastAPI Server<br/>api_server.py"]
 
-    subgraph caching ["⚡ Cache Layer"]
-        C[("Redis Cache<br/><small>3 layers: query · classify · retrieval</small>")]
+    subgraph caching [" ⚡ Cache Layer "]
+        C[("Redis Cache<br/>query · classify · retrieval")]
     end
 
     B --> C
     B --> D
 
-    subgraph classification ["🧠 Classification"]
-        D["Query Classifier<br/><small>GPT-4o-mini · function calling</small>"]
+    subgraph classification [" 🧠 Classification "]
+        D["Query Classifier<br/>GPT-4o-mini"]
         D --> E{{"5-Way Router"}}
     end
 
-    subgraph retrieval ["📡 5 Retrieval Routes"]
+    subgraph retrieval [" 📡 5 Retrieval Routes "]
         E -->|"metric_lookup"| F["XBRL Facts"]
         E -->|"timeseries"| G["XBRL Timeseries"]
         E -->|"full_statement"| H["Financial Statements"]
@@ -31,8 +31,8 @@ graph TD
         E -->|"hybrid"| J["Relational + Vector"]
     end
 
-    subgraph data ["🗄️ Data Layer"]
-        K[("PostgreSQL + pgvector<br/><small>1M+ XBRL facts · 134K+ chunks</small>")]
+    subgraph data [" 🗄️ Data Layer "]
+        K[("PostgreSQL + pgvector<br/>1M+ facts · 134K+ chunks")]
     end
 
     F --> K
@@ -41,19 +41,19 @@ graph TD
     I --> K
     J --> K
 
-    I --> L["🔀 Cross-Encoder Reranker<br/><small>ms-marco-MiniLM-L-6-v2</small>"]
+    I --> L["🔀 Cross-Encoder Reranker<br/>ms-marco-MiniLM-L-6-v2"]
     J --> L
 
-    subgraph trust ["🛡️ Trust Pipeline"]
-        M["Guardrails<br/><small>retrieval filtering</small>"]
-        M --> M2["Contradiction Detection<br/><small>narrative vs XBRL</small>"]
-        M2 --> M3["Confidence Scoring<br/><small>5 signals → 0-100</small>"]
+    subgraph trust [" 🛡️ Trust Pipeline "]
+        M["Guardrails"]
+        M --> M2["Contradiction Detection<br/>narrative vs XBRL"]
+        M2 --> M3["Confidence Scoring<br/>5 signals → 0-100"]
     end
 
     K --> M
     L --> M
 
-    M3 --> N["✅ Answer Generation<br/><small>GPT-4o-mini · source attribution · cost tracking</small>"]
+    M3 --> N["✅ Answer Generation<br/>GPT-4o-mini + sources + cost"]
 
     classDef frontend fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
     classDef cache fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
@@ -69,11 +69,11 @@ graph TD
     class L ml
     class N output
 
-    style caching fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style classification fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style retrieval fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style data fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style trust fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style caching fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style classification fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style retrieval fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style data fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style trust fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 ## Component Details
@@ -181,25 +181,25 @@ def get_connection_pool():
 The `backfill_pipeline.py` orchestrates the full ingestion:
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 graph LR
-    A["🌐 SEC EDGAR API"] -->|"rate limited<br/>0.15s/call"| B["Fetch Filings<br/>Metadata"]
+    A["🌐 SEC EDGAR API"] -->|"rate limited"| B["Fetch Metadata"]
 
-    subgraph parse ["📊 Parse & Extract"]
+    subgraph parse [" 📊 Parse & Extract "]
         B --> C["Parse XBRL"]
-        B --> E["Fetch Financial<br/>Statements"]
+        B --> E["Fetch Statements"]
         B --> G["Extract Sections"]
     end
 
-    subgraph store ["🗄️ PostgreSQL"]
+    subgraph store [" 🗄️ PostgreSQL "]
         C --> D[("annual_facts<br/>quarterly_facts")]
         E --> F[("financial_documents")]
         G --> H[("filing_sections")]
     end
 
-    subgraph embed ["🔮 Embedding Pipeline"]
-        H --> I["Chunk + Embed<br/><small>text-embedding-3-small · 1536 dims</small>"]
-        I --> J[("sections_10k<br/>sections_10q<br/><small>pgvector IVFFlat</small>")]
+    subgraph embed [" 🔮 Embedding Pipeline "]
+        H --> I["Chunk + Embed<br/>text-embedding-3-small"]
+        I --> J[("sections_10k<br/>sections_10q")]
     end
 
     classDef source fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
@@ -210,9 +210,9 @@ graph LR
     class D,F db
     class J vector
 
-    style parse fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style store fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
-    style embed fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style parse fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style store fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
+    style embed fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
 ```
 
 Rate limited at 0.15s between SEC EDGAR API calls.

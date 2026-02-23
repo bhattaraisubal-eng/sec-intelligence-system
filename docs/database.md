@@ -7,74 +7,74 @@ PostgreSQL 17 with the pgvector extension. All tables live in the `public` schem
 ## Entity-Relationship Diagram
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 erDiagram
-    filings ||--o{ filing_sections : "has sections"
-    filings ||--o{ annual_facts : "has annual data"
-    filings ||--o{ quarterly_facts : "has quarterly data"
-    filing_sections ||--o{ sections_10k : "chunked into"
-    filing_sections ||--o{ sections_10q : "chunked into"
+    filings ||--o{ filing_sections : "has"
+    filings ||--o{ annual_facts : "has"
+    filings ||--o{ quarterly_facts : "has"
+    filing_sections ||--o{ sections_10k : "chunks"
+    filing_sections ||--o{ sections_10q : "chunks"
 
     filings {
-        serial id PK "Primary key"
-        varchar ticker "e.g. AAPL"
-        varchar form_type "10-K or 10-Q"
-        date filing_date "SEC filing date"
-        int fiscal_year "Fiscal year"
-        varchar accession_number UK "SEC accession #"
+        serial id PK
+        varchar ticker
+        varchar form_type
+        date filing_date
+        int fiscal_year
+        varchar accession_number UK
     }
     annual_facts {
         serial id PK
-        int filing_id FK "→ filings.id"
-        varchar ticker "Company ticker"
-        int fiscal_year "Fiscal year"
-        varchar concept "XBRL tag"
-        numeric value "Parsed value"
-        varchar unit "USD, shares, etc"
-        varchar dimension "NULL = consolidated"
+        int filing_id FK
+        varchar ticker
+        int fiscal_year
+        varchar concept
+        numeric value
+        varchar unit
+        varchar dimension
     }
     quarterly_facts {
         serial id PK
-        int filing_id FK "→ filings.id"
-        varchar ticker "Company ticker"
-        int fiscal_year "Fiscal year"
-        int fiscal_quarter "1-4"
-        varchar concept "XBRL tag"
-        numeric value "Parsed value"
+        int filing_id FK
+        varchar ticker
+        int fiscal_year
+        int fiscal_quarter
+        varchar concept
+        numeric value
     }
     filing_sections {
         serial id PK
-        int filing_id FK "→ filings.id"
-        varchar section_key "e.g. item_1a_risk_factors"
-        text section_text "Full section content"
-        int word_count "Section length"
+        int filing_id FK
+        varchar section_key
+        text section_text
+        int word_count
     }
     sections_10k {
         serial id PK
-        varchar ticker "Company ticker"
-        int fiscal_year "Fiscal year"
-        varchar section_id "Section identifier"
-        text section_text "Chunk text"
-        vector embedding "1536-dim vector"
-        boolean is_chunked "TRUE = chunk"
-        int chunk_index "Position in section"
+        varchar ticker
+        int fiscal_year
+        varchar section_id
+        text section_text
+        vector embedding
+        boolean is_chunked
+        int chunk_index
     }
     sections_10q {
         serial id PK
-        varchar ticker "Company ticker"
-        int fiscal_year "Fiscal year"
-        int fiscal_quarter "1-4"
-        varchar section_id "Section identifier"
-        text section_text "Chunk text"
-        vector embedding "1536-dim vector"
+        varchar ticker
+        int fiscal_year
+        int fiscal_quarter
+        varchar section_id
+        text section_text
+        vector embedding
     }
     financial_documents {
         serial id PK
-        varchar ticker "Company ticker"
-        varchar statement_type "income / balance / cash"
-        int fiscal_year "Fiscal year"
-        int fiscal_quarter "NULL for annual"
-        text markdown_content "Full statement"
+        varchar ticker
+        varchar statement_type
+        int fiscal_year
+        int fiscal_quarter
+        text markdown_content
     }
 ```
 

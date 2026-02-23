@@ -168,14 +168,14 @@ Weights vary by route type (relational routes weight retrieval quality higher).
 ### "What was Apple's revenue in 2023?"
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 graph LR
-    A["🧠 Classify<br/><small>metric_lookup</small><br/><small>AAPL · 2023</small>"]
-    B["🗄️ Retrieve<br/><small>annual_facts</small><br/><small>Revenue = $383,285M</small>"]
-    C["📊 YoY Compare<br/><small>2022: $394,328M</small><br/><small>Δ -2.8%</small>"]
-    D["🛡️ Guardrails<br/><small>pass ✓</small>"]
-    E["✍️ Generate<br/><small>GPT-4o-mini</small>"]
-    F["✅ 94.4 / 100<br/><small>High Confidence</small>"]
+    A["🧠 Classify<br/>metric_lookup<br/>AAPL · 2023"]
+    B["🗄️ Retrieve<br/>annual_facts<br/>Revenue = $383B"]
+    C["📊 YoY Compare<br/>2022: $394B<br/>Δ -2.8%"]
+    D["🛡️ Guardrails<br/>pass ✓"]
+    E["✍️ Generate<br/>GPT-4o-mini"]
+    F["✅ 94.4/100<br/>High"]
 
     A --> B --> C --> D --> E --> F
 
@@ -191,14 +191,14 @@ graph LR
 ### "What are the key risk factors in Meta's latest 10-K?"
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 graph LR
-    A["🧠 Classify<br/><small>narrative</small><br/><small>META · 2024</small>"]
-    B["🔮 Retrieve<br/><small>pgvector search</small><br/><small>47 chunks</small>"]
-    C["🔀 Rerank<br/><small>cross-encoder</small><br/><small>→ top 15</small>"]
-    D["🛡️ Guardrails<br/><small>filter → 12 chunks</small>"]
-    E["✍️ Generate<br/><small>GPT-4o-mini</small>"]
-    F["🟡 78.2 / 100<br/><small>Medium Confidence</small>"]
+    A["🧠 Classify<br/>narrative<br/>META · 2024"]
+    B["🔮 Retrieve<br/>pgvector search<br/>47 chunks"]
+    C["🔀 Rerank<br/>cross-encoder<br/>→ top 15"]
+    D["🛡️ Guardrails<br/>→ 12 chunks"]
+    E["✍️ Generate<br/>GPT-4o-mini"]
+    F["🟡 78.2/100<br/>Medium"]
 
     A --> B --> C --> D --> E --> F
 
@@ -214,21 +214,21 @@ graph LR
 ### "Compare AAPL and MSFT revenue growth 2020-2024"
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'fontFamily': 'ui-monospace, monospace', 'fontSize': '13px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e293b', 'primaryBorderColor': '#475569', 'lineColor': '#64748b'}}}%%
 graph LR
-    A["🧠 Classify<br/><small>hybrid</small><br/><small>AAPL + MSFT</small>"]
+    A["🧠 Classify<br/>hybrid<br/>AAPL + MSFT"]
 
-    subgraph parallel ["⚡ Parallel Retrieval"]
-        B["🗄️ Relational<br/><small>timeseries 2020-2024</small><br/><small>XBRL facts</small>"]
-        C["🔮 Vector<br/><small>narrative chunks</small><br/><small>pgvector + rerank</small>"]
+    subgraph parallel [" ⚡ Parallel Retrieval "]
+        B["🗄️ Relational<br/>timeseries 2020-2024"]
+        C["🔮 Vector<br/>narrative chunks"]
     end
 
     A --> B
     A --> C
 
-    D["🛡️ Guardrails<br/><small>fair allocation</small><br/><small>25 chunks/ticker</small>"]
-    E["✍️ Generate<br/><small>GPT-4o-mini</small>"]
-    F["✅ 88.1 / 100<br/><small>High Confidence</small>"]
+    D["🛡️ Guardrails<br/>fair allocation<br/>25 chunks/ticker"]
+    E["✍️ Generate<br/>GPT-4o-mini"]
+    F["✅ 88.1/100<br/>High"]
 
     B --> D
     C --> D
@@ -244,5 +244,5 @@ graph LR
     class C vector
     class F output
 
-    style parallel fill:transparent,stroke:#334155,stroke-width:1px,stroke-dasharray:5 5
+    style parallel fill:transparent,stroke:#475569,stroke-width:1px,stroke-dasharray:5 5
 ```
